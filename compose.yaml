@@ -1,0 +1,22 @@
+# MariaDB for the Wikipedia time machine.
+# Start:  cp .env.example .env   (edit the password)   then   docker compose up --wait
+# Client: scripts/db.sh
+services:
+  mariadb:
+    image: mariadb:${MARIADB_VERSION:-12.3.3}
+    container_name: timemachine-mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?set it in .env, see .env.example}
+      MARIADB_DATABASE: timemachine
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./data:/data:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  mariadb-data:

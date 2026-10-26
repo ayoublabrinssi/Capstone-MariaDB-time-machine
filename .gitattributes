@@ -1,0 +1,2 @@
+# Every text file uses LF line endings, whatever the editor or OS.
+* text=auto eol=lf

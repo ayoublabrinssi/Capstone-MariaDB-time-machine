@@ -1,0 +1,47 @@
+# One English Wikipedia title per line. Lines starting with # are ignored.
+# Moroccan cities, biggest first. Redirects are followed by the fetch script.
+Casablanca
+Rabat
+Fez, Morocco
+Marrakesh
+Tangier
+Agadir
+Meknes
+Oujda
+Kenitra
+Tetouan
+Salé
+Témara
+Safi, Morocco
+Mohammedia
+El Jadida
+Khouribga
+Beni Mellal
+Nador
+Taza
+Settat
+Berrechid
+Khemisset
+Larache
+Ksar el-Kebir
+Guelmim
+Essaouira
+Ouarzazate
+Errachidia
+Al Hoceima
+Chefchaouen
+Ifrane
+Azrou
+Tiznit
+Taroudant
+Sidi Kacem
+Sidi Slimane
+Fquih Ben Salah
+Youssoufia
+Benslimane
+Skhirat
+Asilah
+Midelt
+Tan-Tan
+Laayoune
+Dakhla, Western Sahara
