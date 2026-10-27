@@ -1,0 +1,22 @@
+ok 1 - 45 articles in page
+ok 2 - one current row per article
+ok 3 - every revision is a row of article (current + history)
+ok 4 - every revision has an application-time period
+ok 5 - every version points at stored text
+ok 6 - every version has row_start < row_end
+ok 7 - current row starts at the last Wikipedia edit, not at load time
+ok 8 - history reaches back to 2001
+ok 9 - AS OF matches Python for 220 moments (0 wrong)
+ok 10 - AS OF before the first edit returns nothing
+ok 11 - application-time lookup gives the same revision as AS OF
+ok 12 - WITHOUT OVERLAPS refuses a second live revision (error 1062, expected 1062)
+ok 13 - ALTER on a versioned table is refused by default (error 4119, expected 4119)
+ok 14 - row_start cannot be written without system_versioning_insert_history (error 1906, expected 1906)
+ok 15 - history is spread over the yearly partitions
+All 15 database checks passed
+
+............................
+----------------------------------------------------------------------
+Ran 28 tests in 0.245s
+
+OK

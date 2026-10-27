@@ -125,14 +125,9 @@ def main():
         titles = titles[:a.limit]
     os.makedirs(a.out, exist_ok=True)
     manifest_path = os.path.join(a.out, "manifest.json")
-    manifest = {}
-    if os.path.exists(manifest_path):
-        with open(manifest_path, encoding="utf-8") as f:
-            manifest = json.load(f)
 
     for n, title in enumerate(titles, 1):
-        fname = title.replace("/", "_") + ".json"
-        path = os.path.join(a.out, fname)
+        path = os.path.join(a.out, file_name(title))
         if os.path.exists(path) and not a.force:
             print(f"[{n}/{len(titles)}] {title}: already there, skipped")
             continue
@@ -141,21 +136,44 @@ def main():
         sample = pick_sample(revs, a.every)
         print(f" {len(revs)} total, {len(sample)} with text...", end="", flush=True)
         texts = fetch_content([r["revid"] for r in sample])
-        for r in sample:
-            r["text"] = texts.get(r["revid"], "")
+        latest = texts.get(revs[-1]["revid"], "")
+        if "{{disambiguation" in latest.lower() or latest.lstrip().upper().startswith("#REDIRECT"):
+            print(f"\n    WARNING: {real_title} is a disambiguation or redirect page, "
+                  "fix the title in the article list", file=sys.stderr)
         doc = {"pageid": pageid, "title": real_title, "requested_title": title,
                "every": a.every, "fetched_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-               "revisions": revs, "sample": sample}
+               "revisions": revs,
+               "sample": [{"revid": r["revid"], "timestamp": r["timestamp"],
+                           "text": texts.get(r["revid"], "")} for r in sample]}
         with open(path, "w", encoding="utf-8") as f:
             json.dump(doc, f, ensure_ascii=False)
-        manifest[real_title] = {"pageid": pageid, "file": fname, "revisions": len(revs),
-                                "sampled": len(sample), "first": revs[0]["timestamp"],
-                                "last": revs[-1]["timestamp"],
-                                "bytes_now": revs[-1].get("size", 0)}
-        with open(manifest_path, "w", encoding="utf-8") as f:
-            json.dump(manifest, f, ensure_ascii=False, indent=1)
         print(f" saved ({os.path.getsize(path) // 1024} KB)")
-    print(f"Done. {len(manifest)} articles listed in {manifest_path}")
+    write_manifest(titles, a.out, manifest_path)
+
+
+def file_name(title):
+    return title.replace("/", "_") + ".json"
+
+
+def write_manifest(titles, out, manifest_path):
+    """Summary of what is on disk for the titles in the list, rebuilt every run."""
+    manifest = {}
+    for title in titles:
+        path = os.path.join(out, file_name(title))
+        if not os.path.exists(path):
+            continue
+        with open(path, encoding="utf-8") as f:
+            doc = json.load(f)
+        revs = doc["revisions"]
+        manifest[doc["title"]] = {"pageid": doc["pageid"], "file": file_name(title),
+                                  "requested_title": title, "revisions": len(revs),
+                                  "sampled": len(doc["sample"]),
+                                  "first": revs[0]["timestamp"], "last": revs[-1]["timestamp"],
+                                  "bytes_now": revs[-1].get("size", 0),
+                                  "fetched_at": doc.get("fetched_at")}
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=1)
+    print(f"Done. {len(manifest)} of {len(titles)} articles on disk, listed in {manifest_path}")
 
 
 if __name__ == "__main__":
