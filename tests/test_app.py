@@ -187,7 +187,12 @@ class DatabaseTest(unittest.TestCase):
         html = server.render_page({"city": ["57400"], "date": ["2010-01-01"]})
         self.assertIn("It opened the other 18.", html)
         a = v["analyze"]["tables"]["a"]
-        self.assertEqual(a["r_rows"], 1432)
+        # every Rabat version that ended after the moment is read through the key:
+        # 1,432 on the 26 Oct 2026 snapshot, more with newer data
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) AS n FROM article FOR SYSTEM_TIME ALL "
+                        "WHERE page_id = 57400 AND row_end > '2010-01-01 23:59:59.999999'")
+            self.assertEqual(a["r_rows"], cur.fetchone()["n"])
         self.assertIn("row_start <=", a["condition"])
         self.assertEqual(v["versions"], 447)
 

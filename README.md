@@ -52,16 +52,51 @@ WHERE page_id = 57400;   -- Rabat
 
 ## Quick start
 
-Requirements: Docker with Compose (tested with Colima on an Intel Mac) and Python 3. The page needs one package, PyMySQL, which `scripts/run.sh` installs into `.venv` on first start.
+Requirements: Docker with Compose (tested with Colima on an Intel Mac) and Python 3.8 or newer. Then one command:
+
+```sh
+git clone https://github.com/ayoublabrinssi/Capstone-MariaDB-time-machine.git
+cd Capstone-MariaDB-time-machine
+scripts/start.sh
+```
+
+It checks the tools, makes `.env` with a random password, starts MariaDB 12.3.3, asks which data to use and downloads it from Wikipedia (about 15 minutes, the first time only), loads it, runs the 15 database checks and 28 page tests, and starts the page on http://127.0.0.1:8000. Run it again any time: the steps already done are skipped. `scripts/start.sh --help` lists the options.
+
+### Which data
+
+`start.sh` asks first, before anything else. `--data fixed` or `--data newest` answers without asking.
+
+| | Fixed date (default) | Newest |
+|---|---|---|
+| Edits | up to 26 Oct 2026, the last revision of each article is in [data/snapshot.tsv](data/snapshot.tsv) | every edit up to the day you run it |
+| Use it to | compare with the test results and the numbers in this README | see the articles as they are today |
+| Same numbers as the test results, `results/` and this README | yes | no, results may differ from the test results |
+| Tests | pass | pass |
+
+The tests, the files in `results/` and every number in this README were made on the fixed date data. With the newest data, these change:
+
+- more revisions and history rows, and a newer latest version of each article;
+- `AS OF` an old date reads more rows, because more versions ended after it (Rabat on 1 January 2010: 1,432 rows on the fixed date data);
+- the 2026 partition and any later ones hold more rows;
+- the 220 test moments are drawn from the new data, so they are other moments;
+- timings, once measured, will not match exactly.
+
+The tests compare MariaDB with the downloaded data itself, so they pass with either. If Wikipedia has hidden a revision since 26 October 2026, the fixed date download says so and has one revision less.
+
+### By hand
+
+The same steps one by one:
 
 ```sh
 cp .env.example .env          # set a root password
 docker compose up --wait      # MariaDB 12.3.3, database timemachine
-scripts/fetch.sh              # download the history from the Wikipedia API (about 15 min)
+scripts/fetch.sh --snapshot data/snapshot.tsv   # fixed date, 26 Oct 2026 (about 15 min); without the option: newest
 scripts/install.sh            # build the tables and load them (a few seconds)
 scripts/test.sh               # 15 database checks and 28 page tests
 scripts/run.sh                # the page, on http://127.0.0.1:8000
 ```
+
+The page needs one package, PyMySQL, which goes into `.venv` on first start.
 
 ## The data
 
@@ -70,7 +105,7 @@ scripts/run.sh                # the page, on http://127.0.0.1:8000
 | Articles | 45 Moroccan cities, listed in [data/articles.txt](data/articles.txt) |
 | Revisions | 31,179, from 11 Nov 2001 to 26 Oct 2026 |
 | Stored text | 3,330 revisions: the first of every quarter and the latest of each article |
-| Source | MediaWiki API, fetched 26 Oct 2026 by [fetch/fetch.py](fetch/fetch.py) |
+| Source | MediaWiki API, fetched 26 Oct 2026 by [fetch/fetch.py](fetch/fetch.py); the exact end of each article is in [data/snapshot.tsv](data/snapshot.tsv) |
 
 The download is not committed (131 MB). `scripts/fetch.sh` repeats it and skips articles already on disk. [fetch/prepare.py](fetch/prepare.py) turns the JSON into tab-separated files for `LOAD DATA`.
 
@@ -227,7 +262,7 @@ The results will go in `docs/measurements.md`, with the setup: Intel Mac 2017, C
 
 ```
 compose.yaml          MariaDB 12.3.3 in Docker, password from .env
-scripts/              fetch.sh, install.sh, test.sh, run.sh, db.sh
+scripts/              start.sh (all in one), fetch.sh, install.sh, test.sh, run.sh, db.sh
 fetch/                fetch.py (Wikipedia API), prepare.py (JSON to TSV)
 sql/                  01_schema.sql, 02_load.sql, queries.sql, examples/
 tests/                tests.sql (database), test_app.py (page)
