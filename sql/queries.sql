@@ -102,3 +102,27 @@ SELECT p.title, ap.rev_id, ap.bytes, ap.valid_from, ap.valid_to
 FROM article_period ap JOIN page p USING (page_id)
 WHERE p.title = 'Rabat'
   AND ap.valid_from <= '2005-01-01 00:00:00' AND ap.valid_to > '2005-01-01 00:00:00';
+
+
+-- 11. No AS OF in the query at all: the session travels instead.
+--     system_versioning_asof moves every query on a versioned table to that
+--     moment, so a whole site could run "as of 2010" with one SET.
+--     Same answer as query 2, and the partitions are pruned the same way.
+SET @@system_versioning_asof = '2005-01-01 00:00:00';
+SELECT p.title, a.rev_id, a.editor, a.bytes
+FROM article a JOIN page p USING (page_id)
+WHERE p.title = 'Rabat';
+EXPLAIN PARTITIONS SELECT rev_id FROM article WHERE page_id = 57400;
+SET @@system_versioning_asof = DEFAULT;
+
+
+-- 12. Edit wars: the history as data. Days with the most reverts on one
+--     article, read from the edit comments over the full history.
+SELECT p.title, DATE(a.row_start) AS day, COUNT(*) AS edits, COUNT(DISTINCT a.editor) AS editors,
+       SUM(a.comment LIKE 'Revert%' OR a.comment LIKE 'Undid%' OR a.comment LIKE 'rv%'
+           OR a.comment LIKE '%revert%') AS reverts
+FROM article FOR SYSTEM_TIME ALL a JOIN page p USING (page_id)
+GROUP BY p.title, day
+HAVING reverts >= 4
+ORDER BY reverts DESC, edits DESC, day
+LIMIT 10;

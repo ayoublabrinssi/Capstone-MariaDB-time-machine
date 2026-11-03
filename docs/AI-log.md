@@ -26,6 +26,7 @@ When the code changes, this log is updated so it still matches. New entries go a
 | 3 | 2026-10-26 | schema, loader, queries, tests | `fetch/prepare.py`, `sql/01_schema.sql`, `sql/02_load.sql`, `sql/queries.sql`, `sql/examples/`, `tests/tests.sql`, README update | asked for one bitemporal table next to the history table and for the JPTrack-style fleet example; reviewed the files and ran the tests on my Mac before the commit |
 | 4 | 2026-10-27 | the page | `app/server.py`, `app/wikitext.py`, `app/style.css`, `scripts/run.sh`, `tests/test_app.py`, screenshots, README section | asked for the next step of the plan (the page), then asked for a side-by-side compare, a logo and a new design with a searchable city list and a calendar; chose the logo (a history clock on an article, option B of the ones I asked for); asked for separate month and year menus, a full-width layout and the technical panel; asked for a light/dark switch and for the tables and pictures that were missing from the articles; spotted the empty "(, also , ; ; )" where Arabic names were lost; asked to move the revision facts to a plain row above the article (no box, no edit summary); reported that the pictures did not wrap with the text like on Wikipedia; asked for a professional README that presents the project; use less padding, and explain more in the technical panel; reviewed the page and ran it on my Mac before the commit |
 | 5 | 2026-10-28 | one-command setup | `scripts/start.sh`, `data/snapshot.tsv`, `--snapshot` in `fetch/fetch.py`, one page test, README quick start | asked for one command that sets up and runs the project for someone trying it locally; decided that the user chooses at the start between the fixed date data (to compare with the test results) and the newest data, and that the README says what changes; reviewed it and ran it on my Mac before the commit |
+| 6 | 2026-11-03 | measurements, session time travel, retention, edit wars | `scripts/measure.py`, `scripts/measure.sh`, `docs/measurements.md`, `sql/examples/retention.sql`, the session cross-check and the "Edit wars" list in `app/server.py`, queries 11 and 12, five database checks and two page tests, README update | after the meeting with the supervisor, asked for options on what to add next and what to report; picked four of the seven (measurements, time travel for a whole session, retention, an edit-war detector) and the order; ran the measurements on my Mac and chose to keep the partitions although they slow the single-article query; reviewed everything before the commit |
 
 ## Prompts
 
@@ -72,3 +73,9 @@ When the code changes, this log is updated so it still matches. New entries go a
 > In the setup, let them choose the fixed date or the newest data. Say in the README what will be different, and that the tests were done on the fixed date data.
 
 > Ask it at the start. Next to the fixed date, say to choose it to compare with the test results. For the newest, say the results may differ from the test results.
+
+### 6. Measurements, session time travel, retention, edit wars (3 Nov 2026)
+
+> The meeting went well. Now we need to add more features, and I need to prepare what we found, what we can contribute, and questions that are interesting, professional and deep.
+
+> A, B, C, then D.

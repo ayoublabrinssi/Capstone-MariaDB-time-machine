@@ -60,6 +60,19 @@ ROWS_SQL = """SELECT (SELECT COUNT(*) FROM article) AS current_rows,
 PERIOD_SQL = """SELECT rev_id FROM article_period
 WHERE page_id = %s AND valid_from <= %s AND valid_to > %s"""
 
+# No AS OF in the query: the session itself travels (system_versioning_asof).
+SESSION_SQL = """SELECT rev_id FROM article WHERE page_id = %s"""
+
+# Days with reverts: edits whose comment says so, per day, busiest first.
+WARS_SQL = """SELECT DATE(row_start) AS day, COUNT(*) AS edits, COUNT(DISTINCT editor) AS editors,
+       SUM(comment LIKE 'Revert%%' OR comment LIKE 'Undid%%' OR comment LIKE 'rv%%'
+           OR comment LIKE '%%revert%%') AS reverts
+FROM article FOR SYSTEM_TIME ALL
+WHERE page_id = %s
+GROUP BY day HAVING reverts >= 2
+ORDER BY reverts DESC, edits DESC, day
+LIMIT 5"""
+
 PARTITION_ROWS_SQL = """SELECT PARTITION_NAME AS name, TABLE_ROWS AS approx_rows
 FROM information_schema.PARTITIONS
 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'article'"""
@@ -165,7 +178,25 @@ def version_at(conn, page_id, day):
         cur.execute(PERIOD_SQL, (page_id, moment, moment))
         found = cur.fetchone()
         row["period_rev"] = found["rev_id"] if found else None
+        # and asked with no AS OF at all: the session is moved to that moment
+        try:
+            cur.execute("SET @@system_versioning_asof = %s", (moment,))
+            cur.execute(SESSION_SQL, (page_id,))
+            found = cur.fetchone()
+            row["session_rev"] = found["rev_id"] if found else None
+            cur.execute("EXPLAIN PARTITIONS " + SESSION_SQL, (page_id,))
+            used = cur.fetchone()["partitions"] or ""
+            row["session_partitions"] = [p for p in used.split(",") if p]
+        finally:
+            cur.execute("SET @@system_versioning_asof = DEFAULT")
         return row
+
+
+def edit_wars(conn, page_id):
+    """Days with two or more reverts on this article, busiest first."""
+    with conn.cursor() as cur:
+        cur.execute(WARS_SQL, (page_id,))
+        return cur.fetchall()
 
 
 def analyze(report):
@@ -283,6 +314,24 @@ def render_strip(per_year, page_id, day, compare, today):
 <nav class="strip" style="--years:{len(years)}" aria-label="Edits per year">{''.join(bars)}</nav>"""
 
 
+def render_wars(days, page_id, compare):
+    """The days with the most reverts, each a link to that day."""
+    if not days:
+        return ""
+    items = []
+    for d in days:
+        href = link({"city": page_id, "date": d["day"].isoformat(), "compare": compare and compare.isoformat()})
+        items.append(f'<li><a href="{esc(href)}">{nice_day(d["day"])}</a>'
+                     f'<span>{d["edits"]} edits, {int(d["reverts"])} reverts, {d["editors"]} editors</span></li>')
+    return f"""
+<aside class="wars" aria-label="Edit wars">
+  <h2>Edit wars</h2>
+  <ul>{''.join(items)}</ul>
+  <p class="fine">Days with the most reverts, from the edit comments in the full history
+  (<code>FOR SYSTEM_TIME ALL</code>, grouped by day). Click one to read what was live at the end of it.</p>
+</aside>"""
+
+
 SQL_WORDS = re.compile(r"\b(SELECT|FROM|FOR SYSTEM_TIME AS OF TIMESTAMP|AS|LEFT JOIN|ON|WHERE|AND)\b")
 
 
@@ -389,6 +438,10 @@ def render_hood(v, page_id, day, compare, part_rows, store):
     agree = v["period_rev"] == v["rev_id"]
     check = (f'<p class="check ok">Same revision, {v["period_rev"]}.</p>' if agree
              else f'<p class="check bad">Different: {v["period_rev"]}.</p>')
+    n_session = len(v["session_partitions"])
+    session = (f'<p class="check ok">Same revision, {v["session_rev"]}, and the same {n_session} partitions opened.</p>'
+               if v["session_rev"] == v["rev_id"]
+               else f'<p class="check bad">Different: {v["session_rev"]}.</p>')
     raw_end = f'{v["row_end"]:%Y-%m-%d %H:%M:%S.%f}'
     end_note = ("The maximum TIMESTAMP: MariaDB's way of saying the row is current."
                 if v["row_end"].year >= STILL_LIVE else "The moment the next edit replaced it.")
@@ -467,6 +520,11 @@ def render_hood(v, page_id, day, compare, part_rows, store):
     <p class="fine">The same moment asked to <code>article_period</code>, the bitemporal copy that keeps the edit
     times as application time:</p>
     {check}
+    <p class="fine">And with no <code>AS OF</code> in the query at all. One session setting moves every query to that
+    moment, the way a whole site could travel in time:</p>
+    <pre class="code"><code><b>SET</b> @@system_versioning_asof = '{end_of(day)}';
+<b>SELECT</b> rev_id <b>FROM</b> article <b>WHERE</b> page_id = {page_id};</code></pre>
+    {session}
   </section>
 
   <section>
@@ -632,6 +690,7 @@ def render_page(params):
         today = dt.datetime.now(dt.timezone.utc).date()
         body = [render_ask(all_pages, page_id, day, compare, view, today)]
         body.append(render_strip(edits_per_year(conn, page_id), page_id, day, compare, today))
+        body.append(render_wars(edit_wars(conn, page_id), page_id, compare))
 
         v = version_at(conn, page_id, day)
         if v is not None:

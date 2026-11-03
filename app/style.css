@@ -158,6 +158,13 @@ html:not(.js) .theme { display: none; }
 .strip a.cmp i { background: var(--saffron); }
 .strip a.on b, .strip a.cmp b { color: var(--ink); font-weight: 700; }
 
+/* edit wars: the days with the most reverts, under the year strip */
+.wars { margin: 10px 0 0; font: .84rem/1.4 var(--sans); display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 18px; }
+.wars h2 { font-size: .84rem; margin: 0; }
+.wars ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.wars li span { color: var(--muted); margin-left: 6px; }
+.wars .fine { flex-basis: 100%; margin: 0; }
+
 /* reading area: the article, and how MariaDB answered */
 .reading { display: grid; grid-template-columns: minmax(0, 1fr) 420px; grid-template-areas: "main hood";
   gap: 24px; margin-top: 24px; border-top: 2px solid var(--ink); padding-top: 24px; align-items: start; }

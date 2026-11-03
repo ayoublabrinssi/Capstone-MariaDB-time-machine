@@ -36,9 +36,10 @@ A project for area 3, "System-versioned tables: history for free" for the [Maria
 - **Real history, real dates.** 31,179 revisions of 45 Moroccan city articles, from November 2001 to October 2026, loaded with Wikipedia's own edit times as `row_start` and `row_end`.
 - **One clause answers "what did it say then?"** `FOR SYSTEM_TIME AS OF` picks the version; the page shows it, compares two dates side by side, and explains how MariaDB found it.
 - **Two clocks.** `article` keeps Wikipedia time as system time. `article_period` keeps it as application time that can be corrected, with system time on top: bitemporal.
-- **Checked against the source.** 220 moments are worked out in Python from the raw API data and compared with what `AS OF` returns. All 15 database checks and 28 page tests pass.
+- **Checked against the source.** 220 moments are worked out in Python from the raw API data and compared with what `AS OF` returns. All 20 database checks and 30 page tests pass.
+- **Measured.** Size, speed and what retention gives back, at 1x, 2x and 4x the data, against a plain table and against a classic revision table. See [docs/measurements.md](docs/measurements.md).
 
-> **Status (27 Oct 2026):** the data, schema, loader, queries, examples, tests and the page are done, ahead of the plan. Measurements come next. See the [roadmap](#roadmap).
+> **Status (3 Nov 2026):** steps 1 to 6 are done: data, schema, loader, queries, examples, tests, the page and the measurements. Left: the report to MariaDB and the evaluation run (step 7). See the [roadmap](#roadmap).
 
 ## Why
 
@@ -60,7 +61,7 @@ cd Capstone-MariaDB-time-machine
 scripts/start.sh
 ```
 
-It checks the tools, makes `.env` with a random password, starts MariaDB 12.3.3, asks which data to use and downloads it from Wikipedia (about 15 minutes, the first time only), loads it, runs the 15 database checks and 28 page tests, and starts the page on http://127.0.0.1:8000. Run it again any time: the steps already done are skipped. `scripts/start.sh --help` lists the options.
+It checks the tools, makes `.env` with a random password, starts MariaDB 12.3.3, asks which data to use and downloads it from Wikipedia (about 15 minutes, the first time only), loads it, runs the 20 database checks and 30 page tests, and starts the page on http://127.0.0.1:8000. Run it again any time: the steps already done are skipped. `scripts/start.sh --help` lists the options.
 
 ### Which data
 
@@ -79,7 +80,7 @@ The tests, the files in `results/` and every number in this README were made on 
 - `AS OF` an old date reads more rows, because more versions ended after it (Rabat on 1 January 2010: 1,432 rows on the fixed date data);
 - the 2026 partition and any later ones hold more rows;
 - the 220 test moments are drawn from the new data, so they are other moments;
-- timings, once measured, will not match exactly.
+- the timings in `docs/measurements.md` will not match exactly.
 
 The tests compare MariaDB with the downloaded data itself, so they pass with either. If Wikipedia has hidden a revision since 26 October 2026, the fixed date download says so and has one revision less.
 
@@ -92,7 +93,7 @@ cp .env.example .env          # set a root password
 docker compose up --wait      # MariaDB 12.3.3, database timemachine
 scripts/fetch.sh --snapshot data/snapshot.tsv   # fixed date, 26 Oct 2026 (about 15 min); without the option: newest
 scripts/install.sh            # build the tables and load them (a few seconds)
-scripts/test.sh               # 15 database checks and 28 page tests
+scripts/test.sh               # 20 database checks and 30 page tests
 scripts/run.sh                # the page, on http://127.0.0.1:8000
 ```
 
@@ -147,7 +148,7 @@ The text sits in its own table the way Wikipedia splits revisions from text. The
 
 ## Query walk-through
 
-[sql/queries.sql](sql/queries.sql) has ten commented queries, output in [results/queries.txt](results/queries.txt):
+[sql/queries.sql](sql/queries.sql) has twelve commented queries, output in [results/queries.txt](results/queries.txt):
 
 1. the current articles, read like any table
 2. `AS OF`: Rabat on 1 January 2005
@@ -159,6 +160,8 @@ The text sits in its own table the way Wikipedia splits revisions from text. The
 8. one article at two dates
 9. the partitions and what pruning does
 10. the same question through the application-time period
+11. time travel for a whole session with `SET @@system_versioning_asof`, no `AS OF` in the query
+12. edit wars: the days with the most reverts, from the edit comments in `FOR SYSTEM_TIME ALL`
 
 ## The page
 
@@ -174,7 +177,7 @@ LEFT JOIN revision_text AS t ON t.rev_id = a.text_rev_id
 WHERE a.page_id = 57400
 ```
 
-The bars above the article are edits per year from `FOR SYSTEM_TIME ALL`; a click on a year jumps to 1 July of that year. A row above the article gives the facts about the version on show: revision and its number among all versions, the editor (person, IP address or bot), the size and what this edit changed, when it went live and for how long, the age of the article and how many people had edited it by then. When two dates are compared, each gets its own row.
+The bars above the article are edits per year from `FOR SYSTEM_TIME ALL`; a click on a year jumps to 1 July of that year. Under them, "Edit wars" lists the days when the article was reverted at least twice, found by grouping the history by day and counting the comments that say revert; a click opens that day. A row above the article gives the facts about the version on show: revision and its number among all versions, the editor (person, IP address or bot), the size and what this edit changed, when it went live and for how long, the age of the article and how many people had edited it by then. When two dates are compared, each gets its own row.
 
 Next to the article, an "Under the hood" panel shows how MariaDB answered:
 
@@ -185,7 +188,7 @@ Next to the article, an "Under the hood" panel shows how MariaDB answered:
 | Query plan | rows guessed before running next to rows read after | `EXPLAIN PARTITIONS`, `ANALYZE` |
 | This row in system time | the invisible `row_start` and `row_end`, to the microsecond | the same query |
 | Before and after | the previous and next versions, with links, and the number of edits that day | `FOR SYSTEM_TIME ALL` and `BETWEEN` |
-| Cross-check | the revision the bitemporal table `article_period` gives for the same moment | application time |
+| Cross-check | the revision the bitemporal table `article_period` gives for the same moment, and the revision a session set to that moment with `system_versioning_asof` gives, with the partitions it opened | application time, session time travel |
 | What is stored | rows and size of each table, current and history rows, the server version | `information_schema` |
 
 The step-by-step view makes one thing plain: for 1 January 2010 MariaDB reads 1,432 of Rabat's rows to keep one, because the key starts at `row_end` and every version that ended after that date is a candidate. For 1 October 2026 it reads 13 rows, and for 1 January 2005 it reads 1,857. More on this in "Found so far".
@@ -205,13 +208,36 @@ The code is [app/server.py](app/server.py) (Python standard library `http.server
 
 [sql/examples/fleet.sql](sql/examples/fleet.sql) applies the same model to vehicle tracking. It is based on JPTrack, a fleet tracking platform in Morocco, with invented data. A driver assignment is corrected after the fact with `UPDATE ... FOR PORTION OF`, the table answers "who drove TRK-12 on 12 March" today and before the correction, and `WITHOUT OVERLAPS` refuses a second driver on the same truck. Output in [results/fleet.txt](results/fleet.txt).
 
+## Forgetting history
+
+System versioning keeps everything. [sql/examples/retention.sql](sql/examples/retention.sql) shows the two ways to forget, on a copy of `article`, output in [results/retention.txt](results/retention.txt):
+
+- `ALTER TABLE ... DROP PARTITION p0, p1, p2` drops whole years at once and gives the space back at once. Only the oldest partitions can go (error 4116 otherwise), so the rule is "keep the last N years".
+- `DELETE HISTORY FROM ... BEFORE SYSTEM_TIME '2010-01-01'` removes the versions that ended before a date. The rows go, the space does not: the table has to be rebuilt, and `OPTIMIZE TABLE` on a versioned table only works with `system_versioning_alter_history = KEEP`.
+
+After either, `AS OF` 2005 returns nothing for every article: the time machine is cut at the date chosen.
+
+## Measurements
+
+[docs/measurements.md](docs/measurements.md) has the numbers, made by `scripts/measure.sh` on a 2017 Intel Mac (Colima, 2 CPU, 4 GB). In short:
+
+| | |
+|---|---|
+| Size | 148 bytes per version, smaller than a classic revision table (337 bytes), because the history needs no extra index |
+| One article, one date | 3.1 ms with partitions, 1.9 ms without, 1.7 ms on a classic revision table with an index on edit time |
+| All 45 articles, one date | 21 ms for 2005, 2 ms for 2026: pruning works for recent dates |
+| 4x the data | one article's query does not get slower; the all-article query grows linearly |
+| Retention | `DROP PARTITION` 23 ms and the space is back; `DELETE HISTORY` 35 ms and nothing is freed until a rebuild (0.9 s) |
+
+The partitions stay even though they slow the single-article question: they are what makes retention cheap.
+
 ## Tests
 
 `scripts/test.sh` runs two sets.
 
-[tests/tests.sql](tests/tests.sql) has 15 database checks. The main one: [fetch/prepare.py](fetch/prepare.py) picks 220 moments and computes in Python, from the raw JSON, which revision was live at each. The test runs every moment through `FOR SYSTEM_TIME AS OF` with parameters and expects the same revision. It also checks the application-time table agrees, and that the server refuses what it should. Output in [results/tests.txt](results/tests.txt).
+[tests/tests.sql](tests/tests.sql) has 20 database checks. The main one: [fetch/prepare.py](fetch/prepare.py) picks 220 moments and computes in Python, from the raw JSON, which revision was live at each. The test runs every moment through `FOR SYSTEM_TIME AS OF` with parameters and expects the same revision. It also checks the application-time table agrees, that a session set with `system_versioning_asof` gives the same answer and comes back to `DEFAULT`, that `DELETE HISTORY` keeps the right rows, that only the oldest partition can be dropped, and that the server refuses what it should. Output in [results/tests.txt](results/tests.txt).
 
-[tests/test_app.py](tests/test_app.py) has 28 tests for the page: the wikitext cleaner (with pictures, tables and names in Arabic and Berber), the diff and the side-by-side view, the date input (including an injection attempt), and the page against the database, including that the period table agrees. The database ones are skipped, not failed, when MariaDB is not running.
+[tests/test_app.py](tests/test_app.py) has 30 tests for the page: the wikitext cleaner (with pictures, tables and names in Arabic and Berber), the diff and the side-by-side view, the date input (including an injection attempt), and the page against the database, including that the period table and the session time travel agree and that the edit wars come from the edit comments. The database ones are skipped, not failed, when MariaDB is not running.
 
 ## Found so far
 
@@ -222,6 +248,8 @@ Things the documentation does not make obvious, all tested on 12.3.3:
 - **Pruning helps recent questions only.** `AS OF '2026-06-01'` reads 2 partitions. `AS OF '2005-06-01'` reads 23 of 27, because a version that ended in 2020 may have started before 2005. Partitions are cut by end time, not by start time.
 - **`ALTER TABLE` on a versioned table is refused** (error 4119) unless `system_versioning_alter_history` is changed. Settle the schema before loading.
 - **The `WITHOUT OVERLAPS` error is hard to read.** It says `Duplicate entry 'TRK-12-2026-03-25-2026-03-20'`: the period end comes before the start.
+- **`OPTIMIZE TABLE` fails quietly on a versioned table.** Unless `system_versioning_alter_history = KEEP`, the refusal comes back as rows in the result ("Not allowed for system-versioned ...", "Operation failed") and the statement itself succeeds, so a script that checks the return code thinks it worked. Until it runs, the space `DELETE HISTORY` freed stays taken.
+- **Only the oldest partitions can be dropped.** `DROP PARTITION p10` on a table rotated by `INTERVAL` is refused with error 4116; drop from `p0` up.
 
 These will be reported to MariaDB in step 7 of the [roadmap](#roadmap).
 
@@ -231,9 +259,10 @@ Said plainly, from what this project ran into:
 
 - **System time cannot be corrected.** Once a row is in history it stays as it is. A wrong edit time needs the application-time table next to it, which is why `article_period` exists.
 - **Old dates cost more.** The key starts at `row_end`, so `AS OF` 2005 reads 1,857 of Rabat's rows to keep one, while `AS OF` October 2026 reads 13. Partitions help recent questions, not old ones.
+- **Partitions do not help one article.** Measured: 3.1 ms per query with 27 partitions, 1.9 ms without, because an old date opens most partitions anyway. A classic revision table with an index on edit time reads one row and takes 1.7 ms.
 - **Importing history is a special case.** It needs `system_versioning_insert_history`, and `AUTO` partitioning puts all imported history into one partition unless the partitions are created first.
 - **The schema is hard to change later.** `ALTER TABLE` is refused on a versioned table by default.
-- **History only grows.** Nothing is removed until someone runs `DELETE HISTORY` or drops a partition. Week 4 measures how fast it grows.
+- **History only grows.** Nothing is removed until someone runs `DELETE HISTORY` or drops a partition, and `DELETE HISTORY` gives no space back until the table is rebuilt.
 
 ## Roadmap
 
@@ -246,30 +275,23 @@ The plan runs six weeks, from 26 October to the final presentation on 3 December
 | 3 | Load the revisions with their real dates, queries, tests | [#3](https://github.com/ayoublabrinssi/Capstone-MariaDB-time-machine/issues/3) | done |
 | 4 | The page: pick a city and a date, compare two dates | [#4](https://github.com/ayoublabrinssi/Capstone-MariaDB-time-machine/issues/4) | done |
 | 5 | Fleet example: who drove which truck, as we knew it then | [#6](https://github.com/ayoublabrinssi/Capstone-MariaDB-time-machine/issues/6) | done |
-| 6 | Measure how the table grows and what partitioning does | [#5](https://github.com/ayoublabrinssi/Capstone-MariaDB-time-machine/issues/5) | next |
-| 7 | README, limits reported to MariaDB, evaluation run | [#7](https://github.com/ayoublabrinssi/Capstone-MariaDB-time-machine/issues/7) | planned |
+| 6 | Measure how the table grows and what partitioning does | [#5](https://github.com/ayoublabrinssi/Capstone-MariaDB-time-machine/issues/5) | done |
+| 7 | README, limits reported to MariaDB, evaluation run | [#7](https://github.com/ayoublabrinssi/Capstone-MariaDB-time-machine/issues/7) | next |
 
-What the measurements in step 6 will answer:
-
-- How big are the table and its index at 1x, 2x and 4x the data?
-- How long does `AS OF` take with and without partitions (3 runs each, median and spread)?
-- What shrinks after `DELETE HISTORY` or after dropping a partition?
-- How does the same question compare on a classic revision table with a join, the way Wikipedia stores it today?
-
-The results will go in `docs/measurements.md`, with the setup: Intel Mac 2017, Colima 2 CPU / 4 GB, MariaDB 12.3.3. Step 7 adds a "What it replaces" section, reports the limits above to MariaDB, and runs the MariaDB evaluation prompt on the finished repository. The target is to finish by 27 November and keep the last week as a buffer.
+Step 6 answered its four questions in [docs/measurements.md](docs/measurements.md): size at 1x, 2x and 4x, `AS OF` with and without partitions, what retention gives back, and the same question on a classic revision table. Step 7 reports the limits above to MariaDB, adds a "What it replaces" section, and runs the MariaDB evaluation prompt on the finished repository. The target is to finish by 27 November and keep the last week as a buffer.
 
 ## Project structure
 
 ```
 compose.yaml          MariaDB 12.3.3 in Docker, password from .env
-scripts/              start.sh (all in one), fetch.sh, install.sh, test.sh, run.sh, db.sh
+scripts/              start.sh (all in one), fetch.sh, install.sh, test.sh, run.sh, db.sh, measure.sh
 fetch/                fetch.py (Wikipedia API), prepare.py (JSON to TSV)
 sql/                  01_schema.sql, 02_load.sql, queries.sql, examples/
 tests/                tests.sql (database), test_app.py (page)
-results/              output of the queries, examples and tests
+results/              output of the queries, examples, tests and measurements
 data/                 articles.txt; raw/ and load/ are not committed
 app/                  the time machine page: server.py, wikitext.py, app.js, style.css, logo.svg
-docs/                 AI-log.md, SELF-ASSESSMENT.md, screenshots/, logo/ (light, dark, black, white, png)
+docs/                 measurements.md, AI-log.md, SELF-ASSESSMENT.md, screenshots/, logo/
 ```
 
 ## Team

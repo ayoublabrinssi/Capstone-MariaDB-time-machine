@@ -13,10 +13,8 @@ ok 12 - WITHOUT OVERLAPS refuses a second live revision (error 1062, expected 10
 ok 13 - ALTER on a versioned table is refused by default (error 4119, expected 4119)
 ok 14 - row_start cannot be written without system_versioning_insert_history (error 1906, expected 1906)
 ok 15 - history is spread over the yearly partitions
-All 15 database checks passed
-
-............................
-----------------------------------------------------------------------
-Ran 28 tests in 0.245s
-
-OK
+ok 16 - system_versioning_asof gives the same revision as AS OF
+ok 17 - system_versioning_asof is back to DEFAULT, every article is current again
+ok 18 - DELETE HISTORY removes only the versions that ended before the moment
+ok 19 - DROP PARTITION of the oldest year works without changing alter_history (error 0, expected 0)
+ok 20 - only the oldest partitions can be dropped (error 4116, expected 4116)

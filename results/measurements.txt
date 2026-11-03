@@ -1,0 +1,54 @@
+Measurements for the Wikipedia time machine
+MariaDB 12.3.3-MariaDB-ubu2404, innodb_buffer_pool_size 134.2 MB, client Darwin x86_64, 4 CPUs seen by Python
+Run on 2026-11-03 01:44 UTC
+
+1. Size: one version per revision, 31,179 rows at 1x
+table                             rows        data       index   per row
+v1 (partitioned, 1x)            31,179      4.6 MB      0.0 MB     148 B   loaded in 0.6 s
+v2 (partitioned, 2x)            62,358     13.5 MB      0.0 MB     216 B   loaded in 1.2 s
+v4 (partitioned, 4x)           124,716     34.1 MB      0.0 MB     273 B   loaded in 2.1 s
+v1_flat (no partitions)         31,179      5.8 MB      0.0 MB     185 B
+classic (revision table)        31,179      8.9 MB      1.6 MB     337 B
+Sizes from information_schema.TABLES after ANALYZE TABLE. The text is not in these tables.
+
+2. Speed: the 220 test moments, one AS OF each, 3 runs after a warm-up
+v1 (partitioned)                            median 681 ms, min 493, max 697, 3.10 ms per query
+v1_flat (no partitions)                     median 408 ms, min 395, max 437, 1.85 ms per query
+classic (ORDER BY edit_time DESC LIMIT 1)   median 372 ms, min 318, max 383, 1.69 ms per query
+
+   The same, with 4x the rows in the table (v4): one article's cost should not change
+v4 (partitioned, 4x)                        median 521 ms, min 467, max 542, 2.37 ms per query
+
+   All 45 articles at once (COUNT and SUM over AS OF), 3 runs each
+v1 AS OF 2005-06-01                         median 21 ms, min 19, max 23
+v1 AS OF 2010-06-01                         median 15 ms, min 14, max 15
+v1 AS OF 2026-06-01                         median 2 ms, min 2, max 2
+v2 AS OF 2005-06-01                         median 40 ms, min 38, max 41
+v2 AS OF 2010-06-01                         median 30 ms, min 29, max 30
+v2 AS OF 2026-06-01                         median 3 ms, min 3, max 4
+v4 AS OF 2005-06-01                         median 75 ms, min 74, max 79
+v4 AS OF 2010-06-01                         median 56 ms, min 56, max 56
+v4 AS OF 2026-06-01                         median 6 ms, min 5, max 6
+
+3. Rows read to answer one question (Rabat), from ANALYZE FORMAT=JSON
+table                       date           rows read  partitions      ms
+v1                          2005-06-01         1,845    23 of 27    1.83
+v1                          2010-06-01         1,385    18 of 27    1.78
+v1                          2026-06-01            60     2 of 27    0.08
+v1_flat                     2005-06-01         1,845           -    1.30
+v1_flat                     2010-06-01         1,385           -    0.92
+v1_flat                     2026-06-01            60           -    0.12
+classic                     2005-06-01             1           -    0.02
+classic                     2010-06-01             1           -    0.02
+classic                     2026-06-01             1           -    0.02
+
+4. Retention: forgetting history before 2010
+DELETE HISTORY on ret_part: 31,179 -> 23,670 rows in 35 ms; data 4.6 MB -> 4.6 MB, free 0.0 MB
+   OPTIMIZE TABLE: Not allowed for system-versioned `timemachine_measure`.`ret_part`. Change @@system_versioning_alter_history to proceed with ALTER.
+   after OPTIMIZE TABLE with alter_history = KEEP (941 ms): data 3.6 MB, free 0.0 MB
+DELETE HISTORY on ret_flat: 31,179 -> 23,670 rows in 60 ms; data 5.8 MB -> 5.8 MB, free 4.2 MB
+   OPTIMIZE TABLE: Not allowed for system-versioned `timemachine_measure`.`ret_flat`. Change @@system_versioning_alter_history to proceed with ALTER.
+   after OPTIMIZE TABLE with alter_history = KEEP (195 ms): data 3.7 MB, free 0.0 MB
+DROP PARTITION p0..p8 on v1: 31,179 -> 23,670 rows in 23 ms; data 4.6 MB -> 3.6 MB
+
+Scratch database timemachine_measure is left in place; drop it with scripts/measure.sh --clean

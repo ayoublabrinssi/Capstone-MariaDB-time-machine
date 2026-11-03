@@ -196,6 +196,29 @@ class DatabaseTest(unittest.TestCase):
         self.assertIn("row_start <=", a["condition"])
         self.assertEqual(v["versions"], 447)
 
+    def test_the_session_can_travel_without_as_of(self):
+        """SET system_versioning_asof gives the same answer as AS OF, and prunes the same."""
+        v = server.version_at(self.conn, 57400, dt.date(2010, 1, 1))
+        self.assertEqual(v["session_rev"], v["rev_id"])
+        self.assertEqual(len(v["session_partitions"]), len(v["partitions"]))
+        with self.conn.cursor() as cur:  # and the setting did not leak out of version_at
+            cur.execute("SELECT @@system_versioning_asof AS v")
+            self.assertEqual(cur.fetchone()["v"], "DEFAULT")
+        html = server.render_page({"city": ["57400"], "date": ["2010-01-01"]})
+        self.assertIn("SET</b> @@system_versioning_asof", html)
+        self.assertIn("and the same 18 partitions opened", html)
+
+    def test_edit_wars_come_from_the_edit_comments(self):
+        days = server.edit_wars(self.conn, 57400)
+        self.assertTrue(days)
+        self.assertGreaterEqual(days[0]["reverts"], days[-1]["reverts"])
+        for d in days:
+            self.assertGreaterEqual(d["reverts"], 2)
+            self.assertGreaterEqual(d["edits"], d["reverts"])
+        html = server.render_page({"city": ["57400"], "date": ["2010-01-01"]})
+        self.assertIn('class="wars"', html)
+        self.assertIn(f'date={days[0]["day"].isoformat()}', html)
+
     def test_page_shows_pictures_tables_and_the_theme_switch(self):
         html = server.render_page({"city": ["57400"], "date": ["2026-10-01"]})
         self.assertIn('<figure class="img">', html)

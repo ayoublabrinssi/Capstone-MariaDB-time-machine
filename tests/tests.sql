@@ -100,5 +100,33 @@ CALL check_that((SELECT COUNT(*) FROM information_schema.PARTITIONS
                  WHERE TABLE_SCHEMA = 'timemachine' AND TABLE_NAME = 'article' AND TABLE_ROWS > 0) >= 20,
   'history is spread over the yearly partitions');
 
+-- 7. The session can travel without AS OF in the query
+SET @@system_versioning_asof = '2010-01-01 23:59:59.999999';
+SELECT rev_id INTO @via_session FROM article WHERE page_id = 57400;
+SET @@system_versioning_asof = DEFAULT;
+CALL check_that(@via_session = (SELECT rev_id FROM article FOR SYSTEM_TIME AS OF TIMESTAMP '2010-01-01 23:59:59.999999'
+                                WHERE page_id = 57400),
+  'system_versioning_asof gives the same revision as AS OF');
+CALL check_that((SELECT COUNT(*) FROM article) = (SELECT COUNT(*) FROM page),
+  'system_versioning_asof is back to DEFAULT, every article is current again');
+
+-- 8. Retention on a copy: DELETE HISTORY keeps the current rows and newer history
+CREATE OR REPLACE TEMPORARY TABLE kept AS
+  SELECT COUNT(*) AS n FROM article FOR SYSTEM_TIME ALL WHERE row_end >= '2010-01-01';
+CREATE OR REPLACE TABLE article_retention LIKE article;
+SET @@system_versioning_insert_history = 1;
+INSERT INTO article_retention (page_id, rev_id, editor, comment, bytes, text_rev_id, row_start, row_end)
+  SELECT page_id, rev_id, editor, comment, bytes, text_rev_id, row_start, row_end FROM article FOR SYSTEM_TIME ALL;
+SET @@system_versioning_insert_history = 0;
+DELETE HISTORY FROM article_retention BEFORE SYSTEM_TIME '2010-01-01 00:00:00';
+CALL check_that((SELECT COUNT(*) FROM article_retention FOR SYSTEM_TIME ALL) = (SELECT n FROM kept)
+                AND (SELECT COUNT(*) FROM article_retention) = (SELECT COUNT(*) FROM page),
+  'DELETE HISTORY removes only the versions that ended before the moment');
+CALL expect_error('ALTER TABLE article_retention DROP PARTITION p0', 0,
+  'DROP PARTITION of the oldest year works without changing alter_history');
+CALL expect_error('ALTER TABLE article_retention DROP PARTITION p10', 4116,
+  'only the oldest partitions can be dropped');
+DROP TABLE article_retention;
+
 SELECT CONCAT(IF(ok, 'ok ', 'not ok '), n, ' - ', name) AS tap FROM result ORDER BY n;
 DROP PROCEDURE check_that; DROP PROCEDURE as_of_mismatches; DROP PROCEDURE expect_error;
