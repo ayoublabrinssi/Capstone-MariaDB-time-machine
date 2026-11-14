@@ -5,6 +5,7 @@
 --   * who drove truck TRK-12 on 12 March           (application time)
 --   * what did our records say before a correction (system time)
 -- A bitemporal table answers both, and refuses impossible data on its own.
+-- Works on its own table, assignment, and drops it at the end.
 --
 --   scripts/db.sh -t < sql/examples/fleet.sql
 USE timemachine;
@@ -47,7 +48,19 @@ SELECT 'before the fix', driver
 FROM assignment FOR SYSTEM_TIME AS OF TIMESTAMP @before_fix
 WHERE vehicle = 'TRK-12' AND valid_from <= '2026-03-12' AND valid_to > '2026-03-12';
 
--- A second driver on the same truck at the same time is refused.
--- Expected: ERROR 1062 Duplicate entry 'TRK-12-2026-03-25-2026-03-20' ...
--- (MariaDB reports the period end before the start; see the README.)
-INSERT INTO assignment VALUES ('TRK-12', 'Sara', '2026-03-20', '2026-03-25');
+-- A second driver on the same truck at the same time is refused with
+-- error 1062. The message names the period end before the start
+-- ('TRK-12-2026-03-25-2026-03-20'), which is easy to misread; see the README.
+DELIMITER //
+BEGIN NOT ATOMIC
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+      GET DIAGNOSTICS CONDITION 1 @errno = MYSQL_ERRNO, @msg = MESSAGE_TEXT;
+      SELECT 'Sara on TRK-12, 20 to 25 March' AS tried, CONCAT('error ', @errno, ': ', @msg) AS server_said;
+    END;
+  INSERT INTO assignment VALUES ('TRK-12', 'Sara', '2026-03-20', '2026-03-25');
+  SELECT 'Sara on TRK-12, 20 to 25 March' AS tried, 'accepted' AS server_said;
+END //
+DELIMITER ;
+
+DROP TABLE assignment;

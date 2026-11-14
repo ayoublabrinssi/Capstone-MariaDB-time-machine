@@ -1,0 +1,15 @@
+Text inside the versioned row, or next to it? Rabat, 1,878 versions. MariaDB 12.3.3-MariaDB-ubu2404
+
+Size on disk
+  pointer      0.3 MB of version rows +   4.7 MB for 94 stored texts = 5.0 MB
+  inline      80.2 MB, a full text in each of the 1,878 version rows
+
+One article at one moment, text included: rows read from all tables, disk pages (p), time inside the server
+                                          2005-06-01                2010-06-01                2026-06-01
+  pointer, AS OF            1,846 rows    31 p  3.19 ms  1,386 rows    30 p  2.41 ms     61 rows    14 p  0.28 ms
+  inline, AS OF             1,845 rows 4,870 p 49.69 ms  1,385 rows 4,425 p 46.87 ms     60 rows   367 p  1.03 ms
+  inline, first-row query       1 rows    26 p  0.52 ms      1 rows    28 p  0.86 ms      1 rows    14 p  0.38 ms
+
+All articles
+  loaded now      3,330 texts, one per article per quarter: 65 MB of text
+  every revision  31,179 texts: 1.21 GB of text, by the sizes Wikipedia reports

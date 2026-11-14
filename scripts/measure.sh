@@ -3,6 +3,7 @@
 # environment and writes results/measurements.txt. Needs the database
 # running and loaded. Takes a few minutes.
 #   scripts/measure.sh            run everything
+#   scripts/measure.sh --out results/measurements-run2.txt   a repeat run, kept apart
 #   scripts/measure.sh --clean    drop the scratch database it made
 set -e
 cd "$(dirname "$0")/.."

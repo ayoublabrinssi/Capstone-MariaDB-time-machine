@@ -15,10 +15,13 @@
 --                   the database say before the correction?". Bitemporal.
 --
 -- The text itself lives in revision_text, written once and never changed,
--- the way Wikipedia keeps revisions and text in separate tables.
+-- the way Wikipedia keeps revisions and text in separate tables. The load
+-- stores one text per article per quarter; exact_text holds the text of any
+-- other revision, fetched by the page the first time it is opened.
 -- All times are UTC.
 
-CREATE DATABASE IF NOT EXISTS timemachine CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- compose.yaml has already made the database, in utf8mb4 with the server's default collation.
+CREATE DATABASE IF NOT EXISTS timemachine;
 USE timemachine;
 SET time_zone = '+00:00';
 
@@ -42,12 +45,24 @@ CREATE TABLE revision_text (
   KEY (page_id)
 );
 
+-- Exact wikitext of single revisions that are not in revision_text. The page
+-- fills it (app/exact.py): the first time a revision is opened it asks
+-- Wikipedia for that text and keeps it here. It is a cache, so a reload
+-- leaves it alone, and it can be emptied at any time.
+CREATE TABLE IF NOT EXISTS exact_text (
+  rev_id     BIGINT     NOT NULL PRIMARY KEY,
+  body       MEDIUMTEXT NOT NULL,
+  fetched_at TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- The time machine. System time = Wikipedia time.
 -- Partitioned by the year a version ENDED (that is how SYSTEM_TIME partitions
 -- work): p0 = versions replaced in 2001, ..., p25 = replaced in 2026,
 -- pn = the current versions. The partitions are created up front because
--- AUTO alone puts imported history into one partition (README, limits).
--- AUTO stays on, so a new yearly partition is added as time goes on.
+-- AUTO follows the server clock, not the dates of imported rows: without them
+-- the whole history lands in one partition, and later AS OF gives wrong
+-- answers (sql/examples/limits.sql, step 9). AUTO stays on, so a new yearly
+-- partition is added as time goes on (sql/examples/live_edit.sql shows it).
 CREATE TABLE article (
   page_id     INT          NOT NULL PRIMARY KEY,
   rev_id      BIGINT       NOT NULL,
@@ -60,6 +75,11 @@ CREATE TABLE article (
   PERIOD FOR SYSTEM_TIME (row_start, row_end)
 ) WITH SYSTEM VERSIONING
   PARTITION BY SYSTEM_TIME INTERVAL 1 YEAR STARTS '2001-01-01 00:00:00' AUTO PARTITIONS 27;
+
+-- 27 partitions reach the end of 2026. Loaded in a later year, the years
+-- since then are added before any row goes in.
+SET @missing = YEAR(UTC_DATE()) - 2026;
+EXECUTE IMMEDIATE IF(@missing > 0, CONCAT('ALTER TABLE article ADD PARTITION PARTITIONS ', @missing), 'DO 0');
 
 -- Bitemporal: application time = Wikipedia time (data we may correct),
 -- system time = when this database learned it.

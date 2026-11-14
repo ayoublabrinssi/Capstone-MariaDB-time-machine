@@ -9,15 +9,20 @@ Reads the titles in data/articles.txt and writes data/load/:
                         start and end time (system-time history rows)
   article_current.tsv   the latest revision of each article (current rows)
   article_period.tsv    every revision with its application-time period
-  expected_as_of.tsv    200 (article, moment, revision) checks for the tests,
-                        computed here in Python, independently of MariaDB
+  expected_as_of.tsv    220 (article, moment, revision) checks for the tests:
+                        200 random moments and 20 exact edges, computed here
+                        in Python, independently of MariaDB
 
 Times are UTC, written as 'YYYY-MM-DD HH:MM:SS'. Only the standard library.
 
     python3 fetch/prepare.py
+    python3 fetch/prepare.py --articles data/sample/articles.txt --raw data/sample
+
+A raw file may be gzipped (Rabat.json.gz): the sample in data/sample/ is.
 """
 import argparse
 import bisect
+import gzip
 import json
 import os
 import random
@@ -52,22 +57,31 @@ def read_titles(path):
         return [ln.strip() for ln in f if ln.strip() and not ln.startswith("#")]
 
 
-def main():
+def read_raw(raw, title):
+    """The fetched JSON of one article, from <title>.json or <title>.json.gz."""
+    path = os.path.join(raw, title.replace("/", "_") + ".json")
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    if os.path.exists(path + ".gz"):
+        with gzip.open(path + ".gz", "rt", encoding="utf-8") as f:
+            return json.load(f)
+    raise SystemExit(f"missing {path}: run scripts/fetch.sh first")
+
+
+def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--articles", default="data/articles.txt")
     ap.add_argument("--raw", default="data/raw")
     ap.add_argument("--out", default="data/load")
-    ap.add_argument("--checks", type=int, default=200, help="number of AS OF checks for the tests")
-    a = ap.parse_args()
+    ap.add_argument("--checks", type=int, default=200,
+                    help="number of random AS OF checks for the tests (20 exact edges are added)")
+    a = ap.parse_args(argv)
     os.makedirs(a.out, exist_ok=True)
 
     page, texts, history, current, period, all_revs = [], [], [], [], [], []
     for title in read_titles(a.articles):
-        path = os.path.join(a.raw, title.replace("/", "_") + ".json")
-        if not os.path.exists(path):
-            raise SystemExit(f"missing {path}: run scripts/fetch.sh first")
-        with open(path, encoding="utf-8") as f:
-            doc = json.load(f)
+        doc = read_raw(a.raw, title)
         pid, revs = doc["pageid"], doc["revisions"]
         revs.sort(key=lambda r: (r["timestamp"], r["revid"]))
         sampled = sorted((s["timestamp"], s["revid"]) for s in doc["sample"])
@@ -110,11 +124,12 @@ def main():
     # plus the exact edges: one second before and exactly at a revision
     for pid in pids[:10]:
         revs = by_page[pid]
-        t, rid = revs[len(revs) // 2]
-        prev_rid = revs[len(revs) // 2 - 1][1]
+        middle = len(revs) // 2
+        t, rid = revs[middle]
         at = datetime.strptime(t, "%Y-%m-%dT%H:%M:%SZ")
         checks.append((pid, at.strftime("%Y-%m-%d %H:%M:%S"), rid))
-        checks.append((pid, (at - timedelta(seconds=1)).strftime("%Y-%m-%d %H:%M:%S"), prev_rid))
+        if middle > 0:   # an article with one revision has nothing before it
+            checks.append((pid, (at - timedelta(seconds=1)).strftime("%Y-%m-%d %H:%M:%S"), revs[middle - 1][1]))
 
     counts = {
         "page": write(os.path.join(a.out, "page.tsv"), page),

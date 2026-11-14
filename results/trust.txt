@@ -1,0 +1,23 @@
+1. MariaDB 12.3.3-MariaDB-ubu2404, secure_timestamp = NO (the default)
+   A user with SELECT, INSERT, UPDATE and DELETE on one database, nothing else:
+  an ordinary UPDATE                             accepted
+  DELETE HISTORY                                 error 1142: DELETE HISTORY command denied to user 'tm_trust_writer'@'localhost' for table `timemachine_trust`.`price`
+  INSERT a version dated 2015                    accepted
+  UPDATE with the session clock set to 2030      accepted
+   What the table holds now (item, price, row_start to row_end):
+    sugar   1.00   2015-01-01 00:00:00.000000  to  2016-01-01 00:00:00.000000
+    tea    14.00   2026-11-13 19:40:51.242067  to  2026-11-13 19:40:53.388321
+    tea    15.00   2026-11-13 19:40:53.388321  to  2030-01-01 00:00:00.000000
+    tea    16.00   2030-01-01 00:00:00.000000  to  2106-02-07 06:28:15.999999
+   The 2015 version never happened, and the last version starts in 2030.
+  DELETE HISTORY after GRANT DELETE HISTORY      accepted
+
+2. A second server started with --secure-timestamp=YES, the same statements as root:
+  an ordinary UPDATE                             accepted
+  INSERT a version dated 2015                    error 1290: The MariaDB server is running with the --secure-timestamp=YES option so it cannot execute this statement
+  UPDATE with the session clock set to 2030      error 1290: The MariaDB server is running with the --secure-timestamp=YES option so it cannot execute this statement
+   What the table holds now:
+    tea    14.00   2026-11-13 19:41:35.795521  to  2026-11-13 19:41:36.165889
+    tea    15.00   2026-11-13 19:41:36.165889  to  2106-02-07 06:28:15.999999
+   Only the server clock writes system time here. It also means history cannot be
+   imported: load it first on a server without the option, then restart with it.

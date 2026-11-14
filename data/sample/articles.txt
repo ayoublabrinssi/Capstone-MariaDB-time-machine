@@ -1,0 +1,5 @@
+# The three articles that come with the repository (scripts/start.sh --data sample).
+# Same data as the fixed date set, 26 Oct 2026.
+Rabat
+Ifrane
+Asilah

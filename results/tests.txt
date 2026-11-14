@@ -1,11 +1,11 @@
-ok 1 - 45 articles in page
+ok 1 - 45 articles in page, as in the article list
 ok 2 - one current row per article
 ok 3 - every revision is a row of article (current + history)
 ok 4 - every revision has an application-time period
 ok 5 - every version points at stored text
 ok 6 - every version has row_start < row_end
 ok 7 - current row starts at the last Wikipedia edit, not at load time
-ok 8 - history reaches back to 2001
+ok 8 - history starts at the first Wikipedia edit, 2001-11-11
 ok 9 - AS OF matches Python for 220 moments (0 wrong)
 ok 10 - AS OF before the first edit returns nothing
 ok 11 - application-time lookup gives the same revision as AS OF
@@ -18,3 +18,30 @@ ok 17 - system_versioning_asof is back to DEFAULT, every article is current agai
 ok 18 - DELETE HISTORY removes only the versions that ended before the moment
 ok 19 - DROP PARTITION of the oldest year works without changing alter_history (error 0, expected 0)
 ok 20 - only the oldest partitions can be dropped (error 4116, expected 4116)
+ok 21 - no two versions of an article overlap and there are no gaps
+ok 22 - first-row query matches Python for 220 moments (0 wrong)
+ok 23 - first-row query before the first edit returns nothing
+ok 24 - history cannot start before 1970 (error 1292, expected 1292)
+ok 25 - a version cannot end before it starts (error 4112, expected 4112)
+ok 26 - imported versions that overlap are accepted (error 0, expected 0)
+ok 27 - and AS OF then returns two rows for one primary key
+ok 28 - an UPDATE that changes nothing still makes a version
+ok 29 - TRUNCATE is refused on a versioned table (error 4137, expected 4137)
+ok 30 - history cannot be imported into a table versioned by transaction id (error 1906, expected 1906)
+ok 31 - and such a table cannot be partitioned by SYSTEM_TIME (error 4110, expected 4110)
+ok 32 - a column WITHOUT SYSTEM VERSIONING changes without making a version
+ok 33 - a replay with SET @@timestamp lets the server write past history itself
+ok 34 - one step back with the clock loses a version and leaves an overlap, with no error
+ok 35 - an UPDATE today makes the server close the imported row and keep it as history
+ok 36 - and the rollback leaves the loaded history untouched
+ok 37 - FROM ... TO stops one version before BETWEEN when the range ends at an edit
+ok 38 - the page user may SELECT in timemachine and INSERT into exact_text, nothing else
+ok 39 - with too few partitions, one live UPDATE after an import makes AS OF lose a version that is still stored
+ok 40 - the partitions of article reach past its newest history row, so no version is misplaced
+All 40 database checks passed
+
+..............................................................
+----------------------------------------------------------------------
+Ran 62 tests in 3.193s
+
+OK

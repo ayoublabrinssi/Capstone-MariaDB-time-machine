@@ -1,54 +1,111 @@
 Measurements for the Wikipedia time machine
 MariaDB 12.3.3-MariaDB-ubu2404, innodb_buffer_pool_size 134.2 MB, client Darwin x86_64, 4 CPUs seen by Python
-Run on 2026-11-03 01:44 UTC
+Run on 2026-11-13 18:05 UTC
 
 1. Size: one version per revision, 31,179 rows at 1x
 table                             rows        data       index   per row
-v1 (partitioned, 1x)            31,179      4.6 MB      0.0 MB     148 B   loaded in 0.6 s
-v2 (partitioned, 2x)            62,358     13.5 MB      0.0 MB     216 B   loaded in 1.2 s
-v4 (partitioned, 4x)           124,716     34.1 MB      0.0 MB     273 B   loaded in 2.1 s
+v1 (partitioned, 1x)            31,179      4.6 MB      0.0 MB     148 B   loaded in 0.5 s
+v2 (partitioned, 2x)            62,358     13.5 MB      0.0 MB     216 B   loaded in 1.1 s
+v4 (partitioned, 4x)           124,716     34.1 MB      0.0 MB     273 B   loaded in 1.8 s
 v1_flat (no partitions)         31,179      5.8 MB      0.0 MB     185 B
 classic (revision table)        31,179      8.9 MB      1.6 MB     337 B
 Sizes from information_schema.TABLES after ANALYZE TABLE. The text is not in these tables.
 
-2. Speed: the 220 test moments, one AS OF each, 3 runs after a warm-up
-v1 (partitioned)                            median 681 ms, min 493, max 697, 3.10 ms per query
-v1_flat (no partitions)                     median 408 ms, min 395, max 437, 1.85 ms per query
-classic (ORDER BY edit_time DESC LIMIT 1)   median 372 ms, min 318, max 383, 1.69 ms per query
+2. Speed: the 220 test moments, one AS OF each, 5 runs after a warm-up
+v1 (partitioned)                            median 419 ms, min 396, max 445, 1.90 ms per query
+v1_flat (no partitions)                     median 335 ms, min 326, max 384, 1.52 ms per query
+classic (ORDER BY edit_time DESC LIMIT 1)   median 326 ms, min 275, max 445, 1.48 ms per query
 
    The same, with 4x the rows in the table (v4): one article's cost should not change
-v4 (partitioned, 4x)                        median 521 ms, min 467, max 542, 2.37 ms per query
+v4 (partitioned, 4x)                        median 455 ms, min 402, max 1361, 2.07 ms per query
 
-   All 45 articles at once (COUNT and SUM over AS OF), 3 runs each
-v1 AS OF 2005-06-01                         median 21 ms, min 19, max 23
-v1 AS OF 2010-06-01                         median 15 ms, min 14, max 15
-v1 AS OF 2026-06-01                         median 2 ms, min 2, max 2
-v2 AS OF 2005-06-01                         median 40 ms, min 38, max 41
-v2 AS OF 2010-06-01                         median 30 ms, min 29, max 30
-v2 AS OF 2026-06-01                         median 3 ms, min 3, max 4
-v4 AS OF 2005-06-01                         median 75 ms, min 74, max 79
-v4 AS OF 2010-06-01                         median 56 ms, min 56, max 56
-v4 AS OF 2026-06-01                         median 6 ms, min 5, max 6
+   All 45 articles at once (COUNT and SUM over AS OF), 5 runs each
+v1 AS OF 2005-06-01                         median 23 ms, min 20, max 35
+v1 AS OF 2010-06-01                         median 28 ms, min 24, max 40
+v1 AS OF 2026-06-01                         median 4 ms, min 3, max 4
+v2 AS OF 2005-06-01                         median 69 ms, min 43, max 94
+v2 AS OF 2010-06-01                         median 51 ms, min 36, max 724
+v2 AS OF 2026-06-01                         median 18 ms, min 5, max 89
+v4 AS OF 2005-06-01                         median 155 ms, min 121, max 564
+v4 AS OF 2010-06-01                         median 93 ms, min 85, max 325
+v4 AS OF 2026-06-01                         median 13 ms, min 8, max 19
 
 3. Rows read to answer one question (Rabat), from ANALYZE FORMAT=JSON
 table                       date           rows read  partitions      ms
-v1                          2005-06-01         1,845    23 of 27    1.83
-v1                          2010-06-01         1,385    18 of 27    1.78
-v1                          2026-06-01            60     2 of 27    0.08
-v1_flat                     2005-06-01         1,845           -    1.30
-v1_flat                     2010-06-01         1,385           -    0.92
-v1_flat                     2026-06-01            60           -    0.12
-classic                     2005-06-01             1           -    0.02
-classic                     2010-06-01             1           -    0.02
-classic                     2026-06-01             1           -    0.02
+v1                          2005-06-01         1,845    23 of 27    3.27
+v1                          2010-06-01         1,385    18 of 27    2.76
+v1                          2026-06-01            60     2 of 27    0.12
+v1_flat                     2005-06-01         1,845           -    1.95
+v1_flat                     2010-06-01         1,385           -    1.44
+v1_flat                     2026-06-01            60           -    0.08
+classic                     2005-06-01             1           -    0.08
+classic                     2010-06-01             1           -    0.03
+classic                     2026-06-01             1           -    0.03
 
-4. Retention: forgetting history before 2010
-DELETE HISTORY on ret_part: 31,179 -> 23,670 rows in 35 ms; data 4.6 MB -> 4.6 MB, free 0.0 MB
+4. Old dates: three ways to read fewer rows
+   AS OF reads every version that ended after the moment. Tried against it:
+   a second index (page_id, row_start), the application-time table, and a query
+   that reads the key in order and stops at the first row (FIRST_ROW in this file).
+   v1_flat        data 5.8 MB, index 0.0 MB
+   v1_flat_idx    data 5.8 MB, index 1.6 MB
+
+   Rows or index entries examined for Rabat, and the key the optimizer chose
+   query                                               2005-06-01      2010-06-01      2026-06-01
+   AS OF, no partitions                                     1,845           1,385              60
+   AS OF, no partitions, + index on row_start       34 (by_start) 1,385 (PRIMARY)    60 (PRIMARY)
+   AS OF, partitioned, + index on row_start         14 (by_start)   48 (by_start)    60 (PRIMARY)
+   application-time table (article_period)                  1,845           1,385              60
+   first row only, no partitions                                1               1               1
+   first row only, partitioned                                  1               1               1
+
+   Time inside the server for the same questions (r_total_time_ms of ANALYZE), median of 5, in ms
+   query                                               2005-06-01      2010-06-01      2026-06-01
+   AS OF, no partitions                                      1.74            1.39            0.06
+   AS OF, no partitions, + index on row_start                0.04            1.18            0.06
+   AS OF, partitioned, + index on row_start                  0.14            0.08            0.14
+   application-time table (article_period)                   1.88            1.17            0.08
+   first row only, no partitions                             0.03            0.03            0.03
+   first row only, partitioned                               0.12            0.10            0.04
+
+   The 220 test moments again, 5 runs after a warm-up
+   first row only gives the same answer as AS OF for 220 of 220 moments
+   AS OF, no partitions, + index on row_start    median 492 ms, min 411, max 520, 2.24 ms per query
+   AS OF, partitioned, + index on row_start      median 507 ms, min 453, max 591, 2.31 ms per query
+   application-time table (article_period)       median 476 ms, min 392, max 592, 2.16 ms per query
+   first row only, no partitions                 median 395 ms, min 384, max 1100, 1.79 ms per query
+   first row only, partitioned                   median 437 ms, min 393, max 507, 1.99 ms per query
+
+   One synthetic article with many versions, one a minute (Sequence engine).
+   Asked for the moment 10% into its history, so 90% of the versions ended after it.
+   1,110,000 versions loaded in 5.2 s
+   versions and query                        examined       median   key
+   10,000 AS OF                                 9,001      7.81 ms   PRIMARY
+   10,000 first row only                            1      1.43 ms   PRIMARY
+   100,000 AS OF                               90,001     74.68 ms   PRIMARY
+   100,000 first row only                           1      1.74 ms   PRIMARY
+   1,000,000 AS OF                          1,110,000    733.93 ms   full scan
+   1,000,000 first row only                         1      1.74 ms   PRIMARY
+   For the largest article the optimizer leaves the key and scans the whole table.
+
+   The 1,000,000-version article after adding the index on row_start, at three moments
+   moment and query                          examined       median   key
+   10% in, AS OF                            1,110,000    773.29 ms   full scan
+   10% in, AS OF, index forced                100,000     36.35 ms   by_start
+   10% in, first row only                           1      1.63 ms   PRIMARY
+   50% in, AS OF                              500,001    358.81 ms   PRIMARY
+   50% in, AS OF, index forced                500,000    182.55 ms   by_start
+   50% in, first row only                           1      1.59 ms   PRIMARY
+   90% in, AS OF                              100,001    114.24 ms   PRIMARY
+   90% in, AS OF, index forced                900,000    316.55 ms   by_start
+   90% in, first row only                           1      1.76 ms   PRIMARY
+
+5. Retention: forgetting history before 2010
+DELETE HISTORY on ret_part: 31,179 -> 23,670 rows in 124 ms; data 4.6 MB -> 4.6 MB, free 0.0 MB
    OPTIMIZE TABLE: Not allowed for system-versioned `timemachine_measure`.`ret_part`. Change @@system_versioning_alter_history to proceed with ALTER.
-   after OPTIMIZE TABLE with alter_history = KEEP (941 ms): data 3.6 MB, free 0.0 MB
-DELETE HISTORY on ret_flat: 31,179 -> 23,670 rows in 60 ms; data 5.8 MB -> 5.8 MB, free 4.2 MB
+   after OPTIMIZE TABLE with alter_history = KEEP (1157 ms): data 3.6 MB, free 0.0 MB
+DELETE HISTORY on ret_flat: 31,179 -> 23,670 rows in 121 ms; data 5.8 MB -> 5.8 MB, free 4.2 MB
    OPTIMIZE TABLE: Not allowed for system-versioned `timemachine_measure`.`ret_flat`. Change @@system_versioning_alter_history to proceed with ALTER.
-   after OPTIMIZE TABLE with alter_history = KEEP (195 ms): data 3.7 MB, free 0.0 MB
-DROP PARTITION p0..p8 on v1: 31,179 -> 23,670 rows in 23 ms; data 4.6 MB -> 3.6 MB
+   after OPTIMIZE TABLE with alter_history = KEEP (131 ms): data 3.7 MB, free 0.0 MB
+DROP PARTITION p0..p8 on v1: 31,179 -> 23,670 rows in 31 ms; data 4.6 MB -> 3.6 MB
 
 Scratch database timemachine_measure is left in place; drop it with scripts/measure.sh --clean

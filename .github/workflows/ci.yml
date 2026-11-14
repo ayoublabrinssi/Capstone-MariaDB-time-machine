@@ -1,0 +1,110 @@
+# Two jobs on every push and pull request.
+#   quick  a few minutes, no download: lint, the Python tests, then the path a
+#          stranger takes on the sample that comes with the repository
+#          (scripts/start.sh --data sample: three articles, every database
+#          check and test), and the examples that run on it.
+#   full   the same path on all 45 articles at the fixed date, then the
+#          queries, the remaining examples, the backup check, the
+#          measurements and one request to the page. The download from
+#          Wikipedia (about 15 minutes) is cached, so it runs once per data set.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell scripts pass shellcheck
+        run: shellcheck scripts/*.sh
+      - name: Python files compile
+        run: python3 -m compileall -q app fetch scripts tests
+      - name: Python tests without a database (the database ones are skipped)
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet -r app/requirements.txt
+          .venv/bin/python -m unittest discover -s tests
+      - name: One command from a fresh clone, on the sample, tests included
+        run: scripts/start.sh --data sample --no-page
+      - name: Examples that need no more than the sample
+        run: |
+          scripts/db.sh -t < sql/examples/import_history.sql
+          scripts/db.sh -t < sql/examples/live_edit.sql
+          scripts/db.sh -t < sql/examples/fleet.sql | tee fleet.out
+          grep -q "error 1062: Duplicate entry" fleet.out
+          scripts/db.sh -t < sql/examples/limits.sql | tee limits.out
+          # the refusals the example is about must still be refused
+          for code in 1292 4112 1062 4137 4110 1906; do
+            grep -q "error $code" limits.out || { echo "error $code is missing from limits.sql output"; exit 1; }
+          done
+          # step 9: rows in the wrong partition are found and moved
+          grep -q "Found a misplaced row" limits.out
+          grep -q "Moved 3 misplaced rows" limits.out
+      - name: The walk-through queries run on the sample
+        run: |
+          scripts/db.sh -t < sql/queries.sql | tee queries.out
+          grep -q "935901457" queries.out   # query 4: an edit to Rabat in the week of 13 January 2020
+      - name: Who can change history, with and without secure_timestamp
+        run: |
+          scripts/trust_check.sh | tee trust.out
+          grep -q "DELETE HISTORY  *error 1142" trust.out
+          test "$(grep -c "error 1290" trust.out)" = 2
+      - name: Text inside the versioned row, measured
+        run: scripts/text_cost.sh
+      - name: How the table grows, measured
+        run: |
+          scripts/growth.sh | tee growth.out
+          grep -q "partitioned, rebuilt" growth.out
+
+  full:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wikipedia download, cached per data set
+        uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: wikipedia-${{ hashFiles('data/snapshot.tsv', 'data/articles.txt', 'fetch/fetch.py') }}
+      - name: One command from a fresh clone, tests included
+        run: scripts/start.sh --data fixed --no-page
+      - name: Queries and examples run on the loaded data
+        run: |
+          scripts/db.sh -t < sql/queries.sql > /dev/null
+          scripts/db.sh -t < sql/examples/wikipedia_correction.sql > /dev/null
+          scripts/db.sh -t < sql/examples/retention.sql > /dev/null
+          scripts/db.sh -t < sql/examples/live_edit.sql > /dev/null
+      - name: A backup with --dump-history restores every version
+        run: |
+          scripts/backup_check.sh | tee backup.out
+          total=$(sed -n 's/^article in timemachine: \([0-9]*\) versions$/\1/p' backup.out)
+          grep -q -- "--dump-history: .* restored table has $total versions" backup.out
+          grep -q "mariadb-dump (no option): .* restored table has 45 versions" backup.out
+      - name: The measurements run on this machine too
+        run: scripts/measure.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: measurements-on-the-ci-runner
+          path: results/measurements.txt
+      - name: The page answers
+        run: |
+          scripts/run.sh > page.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS "http://127.0.0.1:8000/?city=57400&date=2010-01-01" -o page.html && break
+            sleep 1
+          done
+          grep -q "FOR SYSTEM_TIME AS OF TIMESTAMP" page.html
+          grep -q "A shorter way" page.html

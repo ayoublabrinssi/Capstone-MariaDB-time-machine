@@ -1,0 +1,4 @@
+article in timemachine: 31179 versions
+mariadb-dump (no option): file 9 KB, restored table has 45 versions
+mariadb-dump --dump-history: file 4707 KB, restored table has 31179 versions
+versions identical after the --dump-history restore (same article, revision, start and end): 31179

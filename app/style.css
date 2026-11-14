@@ -198,7 +198,7 @@ html:not(.js) .theme { display: none; }
 .steps li::marker { color: var(--majorelle); font-weight: 700; }
 .steps .code { margin: 6px 0; font-size: .74rem; }
 .steps .parts { margin-top: 8px; }
-.parts { display: grid; grid-template-columns: repeat(27, 1fr); gap: 2px; }
+.parts { display: grid; grid-template-columns: repeat(var(--parts, 27), 1fr); gap: 2px; }
 .parts i { height: 26px; background: var(--line); border-radius: 2px; }
 .parts i.read { background: var(--majorelle); }
 .parts-axis { display: flex; justify-content: space-between; font-size: .7rem; color: var(--muted); margin-top: 4px; }

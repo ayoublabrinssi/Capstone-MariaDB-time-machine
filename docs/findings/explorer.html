@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time machine findings</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=display=swap">
+<style>
+/* One reading column: the findings, then the numbers. Dark first, in the
+   indigo and amber of the time machine page. Opens from a file, no server. */
+:root {
+  color-scheme: dark;
+  --bg: #12131f; --panel: #1b1d2e; --panel2: #23263b; --line: #2e3150; --fg: #e9eaf4; --muted: #9da0bf;
+  --indigo: #8f86ff; --amber: #e2a93b; --good: #58c79a; --bad: #f08a7c; --code: #161829;
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  color-scheme: light;
+  --bg: #f3f3f8; --panel: #ffffff; --panel2: #ebebf5; --line: #d9d9ea; --fg: #1c1f3b; --muted: #5b5e80;
+  --indigo: #4436c8; --amber: #a66c05; --good: #1c7f57; --bad: #b8402f; --code: #eeeef6;
+} }
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f3f8; --panel: #ffffff; --panel2: #ebebf5; --line: #d9d9ea; --fg: #1c1f3b; --muted: #5b5e80;
+  --indigo: #4436c8; --amber: #a66c05; --good: #1c7f57; --bad: #b8402f; --code: #eeeef6;
+}
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--body); }
+.wrap { max-width: 800px; margin: 0 auto; padding-block: 36px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 56px; }
+header, section { min-width: 0; }
+h1 { font: 700 36px/1.12 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 25px/1.2 var(--display); margin: 0 0 6px; text-wrap: balance; }
+h3 { font: 600 18px/1.3 var(--display); margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.lede { color: var(--muted); margin-top: 12px; max-width: 62ch; }
+.intro { color: var(--muted); margin-bottom: 18px; max-width: 62ch; }
+code { font-family: var(--mono); font-size: 0.85em; background: var(--code); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+nav a { color: var(--fg); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px; font-size: 14px; }
+nav a:hover, nav a:focus-visible { border-color: var(--indigo); color: var(--indigo); outline: none; }
+a { color: var(--indigo); }
+
+/* what we added */
+.added { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.group { background: var(--panel); border-radius: 12px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+.group ul { margin: 0; padding-left: 18px; display: grid; gap: 5px; font-size: 15px; }
+.group h3 { font-size: 16px; color: var(--indigo); }
+.counts { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.count { background: var(--panel); border-radius: 10px; padding: 10px 14px; display: grid; }
+.count b { font: 700 26px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.count span { color: var(--muted); font-size: 13px; }
+
+/* findings */
+.finding { border-top: 1px solid var(--line); padding-top: 22px; margin-top: 22px; display: grid; gap: 10px; }
+.finding:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+.head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.tag { font-size: 12px; font-weight: 600; letter-spacing: 0.03em; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.tag.bug { color: var(--bad); border: 1px solid var(--bad); }
+.tag.opt { color: var(--amber); border: 1px solid var(--amber); }
+.tag.doc { color: var(--muted); border: 1px solid var(--line); }
+.pair { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 4px 14px; font-size: 15px; }
+.pair dt { color: var(--muted); }
+.pair dd { margin: 0; }
+.simple { background: var(--panel2); border-radius: 10px; padding: 12px 14px; font-size: 15px; }
+.simple b { color: var(--amber); font-weight: 600; }
+figure { margin: 4px 0 0; overflow-x: auto; }
+figure svg { display: block; min-width: 520px; width: 100%; height: auto; }
+figcaption { color: var(--muted); font-size: 13.5px; margin-top: 6px; }
+svg text { font-family: var(--body); fill: var(--fg); }
+svg .muted { fill: var(--muted); }
+svg .ind { fill: var(--indigo); } svg .amb { fill: var(--amber); } svg .bad { fill: var(--bad); } svg .good { fill: var(--good); }
+svg .box { fill: var(--panel2); stroke: var(--line); }
+svg .ln { stroke: var(--line); } svg .fgln { stroke: var(--fg); }
+svg .badln { stroke: var(--bad); }
+
+/* insights */
+.insights { display: grid; gap: 10px; }
+.insight { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 14px; background: var(--panel); border-radius: 10px; padding: 14px 16px; align-items: start; }
+.insight .num { font: 700 22px/1.15 var(--display); color: var(--amber); font-variant-numeric: tabular-nums; }
+.insight p { font-size: 15px; }
+.insight p + p { color: var(--muted); margin-top: 4px; font-size: 14px; }
+
+/* next */
+.next { display: grid; gap: 12px; counter-reset: n; }
+.idea { background: var(--panel); border-radius: 12px; padding: 16px 18px; display: grid; gap: 6px; }
+.idea p { font-size: 15px; }
+.idea .why { color: var(--muted); font-size: 14px; }
+.effort { font-size: 12.5px; color: var(--muted); }
+.effort b { color: var(--fg); font-weight: 600; }
+
+/* open */
+.open { background: var(--panel); border-radius: 12px; padding: 18px 20px; }
+.open ul { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
+.open li::marker { color: var(--amber); }
+.fine { color: var(--muted); font-size: 13.5px; }
+.more { font-size: 14px; }
+@media (max-width: 600px) {
+  h1 { font-size: 28px; } h2 { font-size: 22px; }
+  .added { grid-template-columns: minmax(0, 1fr); }
+  .pair { grid-template-columns: minmax(0, 1fr); gap: 0 0; }
+  .pair dt { margin-top: 6px; }
+  .insight { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+
+/* interactive figures */
+.lab { background: var(--panel); border-radius: 12px; padding: 14px 16px 16px; display: grid; gap: 12px; }
+.lab figure { margin: 0; }
+.hint { font-size: 14.5px; color: var(--muted); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button, .go, .ghost { font: 500 14px/1.2 var(--body); border-radius: 8px; padding: 8px 12px; cursor: pointer; border: 1px solid var(--line); background: var(--panel2); color: var(--fg); }
+.seg button[aria-pressed="true"] { background: var(--indigo); border-color: var(--indigo); color: var(--bg); }
+.go { background: var(--amber); border-color: var(--amber); color: var(--bg); font-weight: 600; }
+.go:disabled { opacity: .45; cursor: default; }
+.ghost { background: transparent; }
+.seg button:focus-visible, .go:focus-visible, .ghost:focus-visible, input[type=range]:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.ctlrow { display: flex; flex-wrap: wrap; gap: 8px; }
+.slide { display: grid; gap: 4px; font-size: 14.5px; color: var(--muted); }
+.slide output { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; accent-color: var(--indigo); margin: 0; height: 26px; }
+.readout { font-size: 15px; min-height: 1.6em; }
+.readout b.good { color: var(--good); } .readout b.bad { color: var(--bad); }
+.term { margin: 0; background: var(--code); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font: 12.5px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--fg); }
+.term .e { color: var(--bad); } .term .k { color: var(--good); } .term .m { color: var(--muted); }
+.vs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.vs > div { background: var(--panel2); border-radius: 10px; padding: 10px 14px; display: grid; font-size: 14px; color: var(--muted); }
+.big { font: 700 30px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.big.amb { color: var(--amber); } .big.ind { color: var(--indigo); }
+.meter { display: grid; gap: 6px; }
+.mrow { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--muted); }
+.mrow b { color: var(--fg); font-variant-numeric: tabular-nums; }
+.bar { height: 10px; background: var(--panel2); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--amber); border-radius: 99px; transition: width .35s ease; }
+.insight .ibody { display: grid; gap: 10px; }
+.insight .sub { color: var(--muted); font-size: 14px; }
+svg.strip { width: 100%; height: auto; display: block; }
+svg .bgfill { fill: var(--bg); }
+svg .ion { fill: none; stroke: var(--indigo); stroke-width: 2.5; }
+svg .dim { opacity: .5; }
+svg .badfill { fill: none; stroke: var(--bad); stroke-width: 2; stroke-dasharray: 4 3; }
+svg .hit { stroke: var(--fg); stroke-width: 2; }
+
+
+/* clock story */
+.story h4, .why h4, .say h4 { font: 600 16px/1.35 var(--display); margin: 0; }
+.steps { display: flex; gap: 6px; }
+.steps button { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel2); color: var(--fg); font: 600 14px var(--display); cursor: pointer; }
+.steps button[aria-pressed="true"] { background: var(--indigo); border-color: var(--indigo); color: var(--bg); }
+.steps button:focus-visible, .go:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+code.sql { display: block; white-space: pre-wrap; background: var(--code); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font-size: 12.5px; line-height: 1.55; }
+.nb table { border-collapse: collapse; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+.nb th { text-align: left; color: var(--muted); font-weight: 500; padding: 2px 18px 4px 0; border-bottom: 1px solid var(--line); }
+.nb td { padding: 4px 18px 4px 0; border-bottom: 1px solid var(--line); }
+.nb tr.lost td { color: var(--bad); text-decoration: line-through; }
+.nb tr.lost td:last-child { text-decoration: none; }
+.nb tr.newbad td { color: var(--amber); font-weight: 600; }
+svg .ovl { fill: var(--bad); opacity: .16; }
+.why { display: grid; gap: 12px; }
+.why > div { background: var(--panel); border-radius: 12px; padding: 14px 16px; display: grid; gap: 6px; font-size: 15px; }
+.why ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.say { border: 1px solid var(--amber); border-radius: 12px; padding: 14px 16px; display: grid; gap: 8px; font-size: 15.5px; }
+.go:disabled, .ghost:disabled { opacity: .4; cursor: default; }
+
+
+/* old date toy */
+.shelf { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.shelf li { display: grid; grid-template-columns: 6.5em 1fr 1fr 9.5em; gap: 8px; align-items: center; background: var(--panel2); border: 1px solid transparent; border-radius: 8px; padding: 6px 10px; font-size: 14px; font-variant-numeric: tabular-nums; transition: background .2s, opacity .2s; }
+.shelf .vn { font-weight: 600; }
+.shelf .vs2 { font-size: 12.5px; text-align: right; }
+.shelf li.skip { opacity: .45; }
+.shelf li.ans { border-color: var(--good); }
+.shelf li.ans .vs2 { color: var(--good); font-weight: 600; }
+.shelf li.waste { border-color: var(--amber); }
+.shelf li.waste .vs2 { color: var(--amber); }
+.go.alt { background: var(--indigo); border-color: var(--indigo); }
+.sub-h { font: 600 16px/1.35 var(--display); margin: 6px 0 0; }
+.why code.sql { margin-top: 4px; }
+@media (max-width: 600px) { .shelf li { grid-template-columns: 1fr 1fr; gap: 2px 8px; } .shelf .vn { order: 0; } .shelf .vs2 { order: 1; } .shelf .vd { order: 2; } }
+@media (prefers-reduced-motion: reduce) { .shelf li { transition: none; } }
+
+.swipe { display: none; font-size: 13px; color: var(--muted); }
+@media (max-width: 600px) { .swipe { display: block; } }
+@media (max-width: 600px) { .vs { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>What we found, figure by figure</h1>
+    <p class="lede">The findings of the Wikipedia time machine, a project that keeps 25 years of Wikipedia history for 45 Moroccan cities in one system-versioned MariaDB table. Each figure moves: press the buttons and drag the sliders. The same findings are written out, with the commands to reproduce them, in <a href="README.md">docs/findings</a>.</p>
+    <nav aria-label="Sections">
+      <a href="#mariadb">The findings</a>
+      <a href="#insights">What the numbers say</a>
+    </nav>
+  </header>
+
+
+  <!-- 2. Findings for MariaDB -->
+  <section id="mariadb">
+    <h2>The findings</h2>
+    <p class="intro">Things MariaDB 12.3.3 did while real history was loaded into a versioned table. Some may be bugs, one is an idea for the optimizer, the rest are gaps in the documentation. Every number below comes from a file in this repository.</p>
+
+    <!-- AUTO partitions -->
+    <article class="finding" id="f-auto">
+      <div class="head"><h3>A past date stops answering after an import</h3><span class="tag bug">may be a bug</span></div>
+      <p class="more"><a href="01-auto-partitions-lose-imported-history.md">The full write-up, and how to run it yourself</a></p>
+      <p class="simple"><b>In plain words.</b> Think of a filing cabinet with one drawer per year. You bring in old files, but only the first drawer exists, so every file goes in it. Later the cabinet adds the missing drawers by itself. When you ask for 2018, it opens the 2018 drawer and the ones after it, finds nothing, and never looks in the first drawer, where the 2018 file really is.</p>
+      <div class="lab">
+        <div class="seg" role="group" aria-label="Step">
+          <button type="button" data-auto="0" aria-pressed="true">1. Import the history</button>
+          <button type="button" data-auto="1" aria-pressed="false">2. One live UPDATE</button>
+          <button type="button" data-auto="2" aria-pressed="false">3. REPAIR TABLE</button>
+        </div>
+        <label class="slide">Ask the price on 1 January <output id="auto-yr">2018</output>
+          <input type="range" id="auto-y" min="2006" max="2026" value="2018"></label>
+        <p class="swipe">Swipe the figure sideways to see every year.</p>
+        <figure><svg id="auto-svg" viewBox="0 0 820 170" role="img" aria-label="Partitions of the test table and which ones the query opens"></svg></figure>
+        <p class="readout" id="auto-out" aria-live="polite"></p>
+        <pre class="term" id="auto-term"></pre>
+      </div>
+      <dl class="pair">
+        <dt>Where</dt><dd><code>sql/examples/limits.sql</code>, step 9, and checks 39 and 40. The prices and dates in the figure are the ones in that step.</dd>
+        <dt>This project</dt><dd>Safe. The schema makes a partition for every year before the load, and check 40 makes sure of it.</dd>
+        <dt>What to ask</dt><dd>Put an imported row in the right partition, or refuse it. At least one sentence in the docs: create the past partitions first.</dd>
+      </dl>
+    </article>
+
+    <!-- clock step back -->
+    <article class="finding" id="f-clock">
+      <div class="head"><h3>Setting the clock back loses a price and mixes up the history</h3><span class="tag bug">may be a bug</span></div>
+      <p class="more"><a href="02-clock-set-back-loses-a-version.md">The full write-up, and how to run it yourself</a></p>
+
+      <p class="simple"><b>The idea first.</b> A versioned table is like a price notebook. Each line says: "this price, from this date, until this date". For any day you pick, exactly <b>one</b> line should be true. The server writes the dates itself, using its clock. But MariaDB lets a session move its own clock, for example to replay old changes. If the clock goes <em>back</em>, the notebook breaks. Follow the story.</p>
+
+      <div class="lab story">
+        <div class="steps" role="group" aria-label="Story step">
+          <button type="button" data-st="0" aria-pressed="true">1</button>
+          <button type="button" data-st="1" aria-pressed="false">2</button>
+          <button type="button" data-st="2" aria-pressed="false">3</button>
+          <button type="button" data-st="3" aria-pressed="false">4</button>
+          <button type="button" data-st="4" aria-pressed="false">5</button>
+        </div>
+        <h4 id="st-title"></h4>
+        <p id="st-text"></p>
+        <code class="sql" id="st-sql"></code>
+        <div class="nb" id="st-nb"></div>
+        <p class="swipe">Swipe the picture sideways to see every year.</p>
+        <figure><svg id="st-svg" viewBox="0 0 820 176" role="img" aria-label="The price lines on a timeline"></svg></figure>
+        <div id="st-ask" hidden>
+          <label class="slide">Ask: what was the price on the 1st of <output id="st-qd">June 2020</output>
+            <input type="range" id="st-q" min="0" max="88" value="17"></label>
+          <p class="readout" id="st-qa" aria-live="polite"></p>
+        </div>
+        <div class="ctlrow">
+          <button type="button" class="ghost" id="st-back">Back</button>
+          <button type="button" class="go" id="st-next">Next</button>
+        </div>
+      </div>
+
+      <div class="why">
+        <div>
+          <h4>What "overlap" means</h4>
+          <p>Two lines of the notebook cover the same days. After step 4, the line "11.00 from 2020" lies on top of "10.00 until mid-2021" and on top of "12.50 until 2024". In the picture, the red zones are the days with two prices.</p>
+        </div>
+        <div>
+          <h4>Why it is a problem</h4>
+          <ul>
+            <li><b>A real price is deleted.</b> 14.00 was the price from January 2024 on, and now no line remembers it.</li>
+            <li><b>Some days have two answers.</b> Ask for June 2020 and you get 10.00 and 11.00.</li>
+            <li><b>Some days get a different answer.</b> Ask for 2025 and you get 11.00. Before step 4 the notebook said 14.00, and that line is gone.</li>
+            <li><b>Nobody is told.</b> No error and no warning. An invoice, a report or an audit built on this history is wrong and nobody knows.</li>
+          </ul>
+        </div>
+        <div>
+          <h4>How to avoid it, and how MariaDB could fix it</h4>
+          <ul>
+            <li><b>In this project:</b> the clock is never moved. The load writes the real dates directly (<code>system_versioning_insert_history</code>), so this cannot happen.</li>
+            <li><b>On a real server:</b> load the history first, then turn on <code>secure_timestamp=YES</code>. After that, no session can move its clock any more (error 1290). "Load first, lock after."</li>
+            <li><b>The fix to ask MariaDB for:</b> refuse the UPDATE when its time is before the start of the line it closes. The server already refuses a line that ends before it starts when you insert it by hand. It should do the same here.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="say">
+        <h4>How to say it in one sentence</h4>
+        <p>"If a session sets its clock back to before the last change, MariaDB accepts the UPDATE, silently drops the current version, and the new version overlaps older ones, so one date can return two prices."</p>
+      </div>
+
+      <dl class="pair">
+        <dt>Where</dt><dd><code>sql/examples/limits.sql</code>, step 8, and <code>results/limits.txt</code>. The prices, dates and the server's answers in this story are copied from there.</dd>
+      </dl>
+    </article>
+
+    <!-- optimizer -->
+    <article class="finding" id="f-old">
+      <div class="head"><h3>An old date reads almost the whole history</h3><span class="tag opt">optimizer idea</span></div>
+      <p class="more"><a href="03-old-dates-read-the-whole-history.md">The full write-up, and how to run it yourself</a></p>
+
+      <p class="simple"><b>The idea first.</b> Every time an article changes, MariaDB keeps the old version as a line: "this text, from this date, until this date". It stores the lines of one article <b>sorted by the "until" date</b>. When you ask "what did the article look like on a date?", the right line is the one where <em>from ≤ date &lt; until</em>. The problem is how many lines MariaDB reads to find it. Try it on a small article with 10 versions.</p>
+
+      <div class="lab toy">
+        <label class="slide">Pick a date. The question is: what did the article look like on the 1st of <output id="toy-d">June 2018</output>
+          <input type="range" id="toy-in" min="0" max="122" value="24"></label>
+        <div class="ctlrow">
+          <button type="button" class="go" id="toy-asof">Run AS OF</button>
+          <button type="button" class="go alt" id="toy-first">Run the first-row query</button>
+        </div>
+        <ol class="shelf" id="toy-list" aria-label="The 10 versions, sorted by their until date"></ol>
+        <div class="vs">
+          <div><span class="big amb" id="toy-na">0</span><span>lines read by <code>AS OF</code></span></div>
+          <div><span class="big ind" id="toy-nf">0</span><span>lines read by the first-row query</span></div>
+        </div>
+        <p class="readout" id="toy-out" aria-live="polite">Pick a date, then press a button.</p>
+      </div>
+
+      <div class="why">
+        <div>
+          <h4>Why AS OF reads so much</h4>
+          <ul>
+            <li>Because the lines are sorted by "until", MariaDB can <b>jump</b> straight to the first line that ends after your date. Everything before it is skipped. That part is fast.</li>
+            <li>But it also has to check "from ≤ date", and it does not know that the lines follow each other without overlapping. So it keeps reading <b>every line until the end</b>, just in case another one also matches. It finds only one.</li>
+            <li>An old date means almost every line ended after it. So an old date reads almost the whole history. A recent date reads only a few lines.</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Why one line is enough</h4>
+          <p>In a versioned table each version ends exactly when the next one starts. So the first line that ends after your date is always the answer. The first-row query asks for exactly that: sort by "until", take the first line after the date, stop.</p>
+          <code class="sql">-- AS OF: reads every line that ends after the date
+SELECT rev_id FROM article
+  FOR SYSTEM_TIME AS OF TIMESTAMP '2005-06-01'
+  WHERE page_id = 57400;
+
+-- first-row query: reads one line
+SELECT rev_id FROM (
+  SELECT rev_id, row_start FROM article FOR SYSTEM_TIME ALL
+  WHERE page_id = 57400 AND row_end &gt; '2005-06-01'
+  ORDER BY row_end LIMIT 1) v
+WHERE v.row_start &lt;= '2005-06-01';</code>
+          <p class="sub">The last line checks that the article already existed on that date. Same answer as AS OF, tested on 220 dates (check 22).</p>
+        </div>
+      </div>
+
+      <h4 class="sub-h">Now the real article: Rabat, 1,878 versions</h4>
+      <div class="lab">
+        <label class="slide">Rabat, AS OF the 1st of <output id="old-d">June 2005</output>
+          <input type="range" id="old-in" min="6" max="297" value="41"></label>
+        <p class="swipe">Swipe the figure sideways to see every year.</p>
+        <figure><svg id="old-svg" viewBox="0 0 820 150" role="img" aria-label="Rabat's 1,878 versions by the month they ended. The ones AS OF reads are in amber."></svg></figure>
+        <div class="vs">
+          <div><span class="big amb" id="old-n">1,845</span><span>lines read by <code>AS OF</code></span></div>
+          <div><span class="big ind">1</span><span>line read by the first-row query</span></div>
+        </div>
+        <p class="fine">Each bar is one month: how many versions of Rabat ended in it. Amber = read by AS OF. Blue = the one line the first-row query reads. Data from the sample that ships with the project; the full data gives the same 1,845 on 1 June 2005.</p>
+      </div>
+
+      <div class="why">
+        <div>
+          <h4>Why it matters</h4>
+          <p>It grows with the history. On a test key with 1,000,000 versions, <code>AS OF</code> on an old date took about 750 ms. The first-row query took under 2 ms. We also added an index on "from"; MariaDB still chose to read everything, about 20 times slower than with the index.</p>
+        </div>
+        <div>
+          <h4>The idea for MariaDB</h4>
+          <p>The optimizer is the part of MariaDB that decides how to read the data. In a versioned table the server writes the versions itself, one after the other, so for one key they never overlap. When the query gives the whole key (one article), the optimizer could stop at the first line, like our query does. Then every date would cost one line. This was asked at the meeting with MariaDB on 5 November 2026.</p>
+          <p class="sub">The catch: imported history can overlap (see the clock finding above), and then one line is not enough. That is why check 21 makes sure the versions of each article never overlap.</p>
+        </div>
+      </div>
+
+      <div class="say">
+        <h4>How to say it in one sentence</h4>
+        <p>"For one article, AS OF reads every version that ended after the date you ask for, so an old date reads almost the whole history. Since versions never overlap, the first of those rows is already the answer, and reading only that row gives the same result."</p>
+      </div>
+
+      <dl class="pair">
+        <dt>This project</dt><dd>The page ("A shorter way" in the side panel) and query 13 use the first-row query.</dd>
+        <dt>Where</dt><dd><code>results/measurements.txt</code> and <code>results/text_cost.txt</code> for the numbers, <code>sql/queries.sql</code> query 13 for the query.</dd>
+      </dl>
+    </article>
+
+    <!-- optimize quiet -->
+    <article class="finding" id="f-opt">
+      <div class="head"><h3><code>OPTIMIZE TABLE</code> fails but says it worked</h3><span class="tag bug">may be a bug</span></div>
+      <p class="more"><a href="04-optimize-says-it-worked.md">The full write-up, and how to run it yourself</a></p>
+      <p class="simple"><b>In plain words.</b> After you delete old history, the space only comes back when the table is rebuilt. <code>OPTIMIZE TABLE</code> on a versioned table refuses to do it. The refusal is hidden in the result rows, and the statement still reports success. A cleanup script would think it freed the space.</p>
+      <div class="lab">
+        <div class="ctlrow">
+          <button type="button" class="go" id="opt-next">Run: DELETE HISTORY before 2010</button>
+          <button type="button" class="ghost" id="opt-reset">Start again</button>
+        </div>
+        <div class="meter">
+          <div class="mrow"><span>Versions</span><b id="opt-v">31,102</b></div>
+          <div class="mrow"><span>Size on disk</span><b id="opt-kb">4,352 KB</b></div>
+          <div class="bar"><i id="opt-bar" style="width:100%"></i></div>
+        </div>
+        <pre class="term" id="opt-term" aria-live="polite">A copy of the article table, before any cleanup.</pre>
+      </div>
+      <dl class="pair">
+        <dt>Where</dt><dd><code>sql/examples/retention.sql</code> and <code>results/retention.txt</code>. The numbers and messages above are copied from there.</dd>
+        <dt>What to ask</dt><dd>Raise a real error, like <code>ALTER TABLE</code> does, or say in the docs that it needs <code>system_versioning_alter_history = KEEP</code>.</dd>
+      </dl>
+    </article>
+
+    <!-- docs gaps -->
+    <article class="finding">
+      <div class="head"><h3>Five gaps in the documentation</h3><span class="tag doc">documentation</span></div>
+      <p class="more">Written up in <a href="05-anyone-can-write-the-past.md">finding 5</a>, <a href="06-imported-versions-can-overlap.md">finding 6</a> and <a href="07-smaller-things.md">finding 7</a>.</p>
+      <dl class="pair">
+        <dt>Importing history</dt><dd>The docs give it one line. Our five-step tutorial and six-row example can be lifted as they are.</dd>
+        <dt>Overlaps on import</dt><dd>Two versions that cover the same months are both accepted, and a date between them returns two rows for one key. Nothing checks this.</dd>
+        <dt>Who can write a past</dt><dd>On a default server, a user with only INSERT and UPDATE could add a version dated 2015 and one dated 2030. Only <code>secure_timestamp=YES</code> stops it, and it also stops any import. So: load first, lock after.</dd>
+        <dt>The 1970 floor</dt><dd>History cannot start before 1970. The error says "incorrect datetime value" and not why.</dd>
+        <dt>The overlap error</dt><dd>"Duplicate entry 'TRK-12-2026-03-25-2026-03-20'" prints the end of the period before its start, and calls an overlap a duplicate.</dd>
+      </dl>
+    </article>
+  </section>
+
+  <!-- 3. Insights -->
+  <section id="insights">
+    <h2>What the numbers say</h2>
+    <p class="intro">Not bugs. These are things measured on this data that a team choosing system versioning would want to know. They are in <code>docs/measurements.md</code>.</p>
+    <div class="insights">
+
+      <div class="insight">
+        <div class="num">23 of 27</div>
+        <div class="ibody">
+          <p>Partitions by year help recent dates only. Move the year: the drawers in color are the ones the server opens.</p>
+          <label class="slide">AS OF 1 January <output id="pr-yr">2005</output>
+            <input type="range" id="pr-in" min="2001" max="2026" value="2005"></label>
+          <svg id="pr-svg" class="strip" viewBox="0 0 540 34" role="img" aria-label="27 partitions, the opened ones in color"></svg>
+          <p class="readout" id="pr-out" aria-live="polite"></p>
+          <p class="sub">They do not speed up one article. Their real value is cleanup: dropping old years takes 14 ms and frees the space at once.</p>
+        </div>
+      </div>
+
+      <div class="insight">
+        <div class="num" id="tx-num">16×</div>
+        <div class="ibody">
+          <p>Where should the article text live? Pick one and compare, for Rabat.</p>
+          <div class="seg" role="group" aria-label="Where the text lives">
+            <button type="button" data-tx="0" aria-pressed="true">Text in its own table</button>
+            <button type="button" data-tx="1" aria-pressed="false">Text inside the versioned row</button>
+          </div>
+          <div class="meter">
+            <div class="mrow"><span>Size on disk</span><b id="tx-mb">5.0 MB</b></div>
+            <div class="bar"><i id="tx-bar1"></i></div>
+            <div class="mrow"><span>Disk pages read for AS OF 1 June 2005</span><b id="tx-pg">31</b></div>
+            <div class="bar"><i id="tx-bar2"></i></div>
+          </div>
+          <p class="sub">That is why the text sits in its own table. Found with <code>text_cost.sh</code>.</p>
+        </div>
+      </div>
+
+      <div class="insight">
+        <div class="num" id="dp-num">45</div>
+        <div class="ibody">
+          <p>A backup with <code>mariadb-dump</code>: how many versions come back after a restore?</p>
+          <div class="seg" role="group" aria-label="Dump command">
+            <button type="button" data-dp="0" aria-pressed="true">mariadb-dump</button>
+            <button type="button" data-dp="1" aria-pressed="false">mariadb-dump --dump-history</button>
+          </div>
+          <div class="meter">
+            <div class="mrow"><span>Versions restored, of 31,179</span><b id="dp-n">45</b></div>
+            <div class="bar"><i id="dp-bar"></i></div>
+          </div>
+          <p class="sub">With the plain command the history is left out, with no warning. Checked with <code>backup_check.sh</code>.</p>
+        </div>
+      </div>
+
+      <div class="insight">
+        <div class="num">114 B</div>
+        <div class="ibody">
+          <p>One version costs 114 bytes of row, in every design we tried. On disk the table is 7.3 MB for 3.6 MB of rows, because history written in time order leaves the pages of a partitioned table half full.</p>
+          <p class="sub">A rebuild brings it to 4.5 MB. Found with <code>growth.sh</code>.</p>
+        </div>
+      </div>
+
+      <div class="insight">
+        <div class="num">0 MB</div>
+        <div class="ibody">
+          <p><code>DELETE HISTORY</code> removed 7,432 old versions and freed nothing. Try it in the <a href="#f-opt">OPTIMIZE figure</a> above.</p>
+          <p class="sub">Retention is cheaper with partitions than with deletes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <p class="fine">MariaDB 12.3.3. Every number on this page comes from a file in <a href="../../results/">results/</a>.</p>
+</div>
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, text) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function clear(svg) { while (svg.firstChild) svg.removeChild(svg.firstChild); }
+  function fmt(n) { return n.toLocaleString('en-US'); }
+  function press(btns, active) { btns.forEach(function (b) { b.setAttribute('aria-pressed', b === active ? 'true' : 'false'); }); }
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+
+  /* 1. AUTO partitions (limits.sql step 9) */
+  (function () {
+    var svg = document.getElementById('auto-svg'), out = document.getElementById('auto-out'),
+        term = document.getElementById('auto-term'), yIn = document.getElementById('auto-y'),
+        yOut = document.getElementById('auto-yr'), btns = [].slice.call(document.querySelectorAll('[data-auto]'));
+    var state = 0;
+    // versions of 'tea' in limits.sql step 9: start, end (as year fractions)
+    var V = [
+      { p: '10.00', s: 2005.16, e: 2009.5, home: 2009 },
+      { p: '12.50', s: 2009.5, e: 2016.08, home: 2016 },
+      { p: '14.00', s: 2016.08, e: 2023.75, home: 2023 },
+      { p: '15.00', s: 2023.75, e: 2026.87, home: 2026 }, // closed by the live UPDATE
+      { p: '16.00', s: 2026.87, e: 9999, home: 'now' }
+    ];
+    function where(i) {
+      if (state === 0) return i < 3 ? 'p0' : (i === 3 ? 'now' : null);
+      if (state === 1) return i < 3 ? 'p0' : V[i].home;
+      return V[i].home;
+    }
+    function drawers() {
+      if (state === 0) return [{ id: 'p0', label: 'p0: every past year', w: 300 }, { id: 'now', label: 'now', w: 64 }];
+      var d = [{ id: 'p0', label: 'p0', w: 32 }];
+      for (var y = 2006; y <= 2026; y++) d.push({ id: y, label: String(y).slice(2), w: 32 });
+      d.push({ id: 'now', label: 'now', w: 40 });
+      return d;
+    }
+    function draw() {
+      var Y = +yIn.value; yOut.textContent = Y;
+      clear(svg);
+      var ds = drawers(), x = 0, pos = {};
+      // which version answers AS OF 1 Jan Y
+      var ans = -1;
+      for (var i = 0; i < 4; i++) { var e = (state === 0 && i === 3) ? 9999 : V[i].e; if (V[i].s <= Y && Y < e) ans = i; }
+      var opened = function (id) {
+        if (state === 0) return true;
+        if (id === 'now') return true;
+        if (id === 'p0') return false;
+        return id >= Y;
+      };
+      svg.appendChild(el('text', { x: 0, y: 14, 'font-size': 12.5, class: 'muted' },
+        state === 0 ? 'Two partitions: one for all history, one for the current row' : 'Partitions after AUTO filled in the years (05 = 2005, 26 = 2026)'));
+      ds.forEach(function (d) {
+        var g = el('g', opened(d.id) ? {} : { class: 'dim' });
+        g.appendChild(el('rect', { x: x, y: 24, width: d.w, height: 104, rx: 5, class: 'box' }));
+        g.appendChild(el('text', { x: x + d.w / 2, y: 142, 'font-size': 11, 'text-anchor': 'middle', class: 'muted' }, d.label));
+        svg.appendChild(g);
+        if (opened(d.id)) svg.appendChild(el('rect', { x: x + 1, y: 25, width: d.w - 2, height: 102, rx: 5, class: 'ion' }));
+        pos[d.id] = { x: x, w: d.w, n: 0 };
+        x += d.w + 3;
+      });
+      for (var i = 0; i < V.length; i++) {
+        var at = where(i); if (at == null) continue;
+        var b = pos[at], cw = b.w - 6, cx = b.x + 3, cy = 30 + b.n * 22; b.n++;
+        if (state === 0 && at === 'p0') { cw = 88; cx = b.x + 6 + (b.n - 1) * 94; cy = 30; }
+        var cls = (i === 4 || (state === 0 && i === 3)) ? 'ind' : 'amb';
+        var r = el('rect', { x: cx, y: cy, width: cw, height: 18, rx: 3, class: cls });
+        if (i === ans) r.setAttribute('class', cls + ' hit');
+        svg.appendChild(r);
+        svg.appendChild(el('text', { x: cx + cw / 2, y: cy + 13, 'font-size': cw < 40 ? 9.5 : 11.5, 'text-anchor': 'middle', class: 'bgfill' },
+          cw < 40 ? V[i].p.replace('.00', '').replace('.50', '.5') : V[i].p));
+      }
+      var found = ans >= 0 && opened(where(ans));
+      if (state === 0) svg.appendChild(el('text', { x: 0, y: 162, 'font-size': 12.5, class: 'muted' }, 'With one history partition there is nothing to skip, so every date answers.'));
+      else svg.appendChild(el('text', { x: 0, y: 162, 'font-size': 12.5, class: found ? 'muted' : 'bad' },
+        found ? 'Outlined = opened by the query. The answer is in an opened partition.' : 'Outlined = opened by the query. The answer is in p0, which is skipped.'));
+      out.innerHTML = 'AS OF 1 January ' + Y + ' → ' + (found
+        ? '<b class="good">' + V[ans].p + ' MAD</b>'
+        : '<b class="bad">NULL</b>, although the row with ' + V[ans].p + ' is still stored');
+      term.innerHTML = [
+        '<span class="m">-- after the import: 2 partitions, 3 versions in p0, AS OF 2018 gives 14.00</span>',
+        '<span class="m">-- after one live UPDATE (price 16.00), AUTO adds the missing years</span>\nCHECK TABLE limit_auto;\n<span class="e">error  Found a misplaced row</span>',
+        'REPAIR TABLE limit_auto;\n<span class="k">warning  Moved 3 misplaced rows\nstatus   OK</span>\n<span class="m">-- p0 is empty, AS OF 2018 gives 14.00 again</span>'
+      ][state];
+    }
+    btns.forEach(function (b) { b.addEventListener('click', function () { state = +b.dataset.auto; press(btns, b); draw(); }); });
+    yIn.addEventListener('input', draw);
+    draw();
+  })();
+
+  /* 2. Clock step back, told as a story (limits.sql step 8) */
+  (function () {
+    var svg = document.getElementById('st-svg'), nb = document.getElementById('st-nb'),
+        title = document.getElementById('st-title'), text = document.getElementById('st-text'),
+        sql = document.getElementById('st-sql'),
+        ask = document.getElementById('st-ask'), q = document.getElementById('st-q'),
+        qd = document.getElementById('st-qd'), qa = document.getElementById('st-qa'),
+        back = document.getElementById('st-back'), next = document.getElementById('st-next'),
+        dots = [].slice.call(document.querySelectorAll('[data-st]'));
+    var X0 = 70, X1 = 790, T0 = 2019, T1 = 2027, NOW = 2026.87;
+    function X(t) { return X0 + (Math.min(t, T1) - T0) / (T1 - T0) * (X1 - X0); }
+    var MAR19 = 2019 + 2 / 12, JUN21 = 2021 + 5 / 12, JAN24 = 2024 + 0.5 / 12, JAN20 = 2020;
+    function name(t) { if (Math.abs(t - JAN24) < 1e-6) return '15 January 2024'; var y = Math.floor(t + 1e-6), m = Math.floor((t - y) * 12 + 1e-6); return MONTHS[m] + ' ' + y; }
+    // the notebook at each step: price, from, until (null = still the price today), lost
+    var STEPS = [
+      { t: '2019: the price of tea is 10.00',
+        x: 'The shop adds tea. The server writes one line, starting today, open-ended.',
+        s: "-- clock: 1 March 2019\nINSERT INTO limit_clock VALUES ('tea', 10.00);",
+        rows: [{ p: '10.00', s: MAR19, e: null }] },
+      { t: '2021: the price goes up to 12.50',
+        x: 'An UPDATE does two things: it closes the old line at today\'s date, and opens a new line from today.',
+        s: "-- clock: 1 June 2021\nUPDATE limit_clock SET mad = 12.50;",
+        rows: [{ p: '10.00', s: MAR19, e: JUN21 }, { p: '12.50', s: JUN21, e: null }] },
+      { t: '2024: the price goes up to 14.00',
+        x: 'Same again. The notebook is clean: the lines touch end to end, so every day has exactly one price.',
+        s: "-- clock: 15 January 2024\nUPDATE limit_clock SET mad = 14.00;",
+        rows: [{ p: '10.00', s: MAR19, e: JUN21 }, { p: '12.50', s: JUN21, e: JAN24 }, { p: '14.00', s: JAN24, e: null }] },
+      { t: 'Someone sets the clock back to 2020 and changes the price to 11.00',
+        x: 'The server must close the current line (14.00, from January 2024) "until January 2020". That line would end before it starts, which is impossible, so the server simply does not keep it. Then it opens 11.00 from January 2020. It says "accepted": no error, no warning.',
+        s: "SET @@timestamp = UNIX_TIMESTAMP('2020-01-01');\nUPDATE limit_clock SET mad = 11.00;   -- server: accepted",
+        rows: [{ p: '10.00', s: MAR19, e: JUN21 }, { p: '12.50', s: JUN21, e: JAN24 }, { p: '14.00', s: JAN24, e: null, lost: true }, { p: '11.00', s: JAN20, e: null, bad: true }] },
+      { t: 'Now ask the notebook a date',
+        x: 'Move the slider. Red zones have two lines for the same day. After 2024 there is one answer, but it is 11.00 where the notebook said 14.00 before.',
+        s: "SELECT mad FROM limit_clock\n  FOR SYSTEM_TIME AS OF TIMESTAMP '2020-06-01';   -- 2 rows: 10.00 and 11.00",
+        rows: null }
+    ];
+    STEPS[4].rows = STEPS[3].rows;
+    var st = 0;
+    function lane(r, i) {
+      var y = 34 + i * 30, e = r.e == null ? NOW : r.e;
+      svg.appendChild(el('text', { x: 0, y: y + 14, 'font-size': 12.5, class: r.lost ? 'bad' : '' }, r.p));
+      if (r.lost) {
+        svg.appendChild(el('rect', { x: X(r.s), y: y, width: X(NOW) - X(r.s), height: 20, rx: 3, class: 'badfill' }));
+        svg.appendChild(el('line', { x1: X(r.s), y1: y + 10, x2: X(NOW), y2: y + 10, class: 'badln', 'stroke-width': 1.5 }));
+        svg.appendChild(el('text', { x: X(r.s) + 6, y: y - 3, 'font-size': 11.5, class: 'bad' }, 'thrown away by the server'));
+        return;
+      }
+      svg.appendChild(el('rect', { x: X(r.s), y: y, width: X(e) - X(r.s), height: 20, rx: 3, class: r.bad ? 'amb' : 'ind' }));
+      svg.appendChild(el('text', { x: X(r.s) + 6, y: y + 14, 'font-size': 11.5, class: 'bgfill' },
+        'from ' + name(r.s) + (r.e == null ? ', still today' : ' until ' + name(r.e))));
+    }
+    function answers(t) {
+      return STEPS[4].rows.filter(function (r) { return !r.lost && r.s <= t && t < (r.e == null ? 9999 : r.e); });
+    }
+    function draw() {
+      var S = STEPS[st];
+      dots.forEach(function (d, i) { d.setAttribute('aria-pressed', i === st ? 'true' : 'false'); });
+      title.textContent = 'Step ' + (st + 1) + '. ' + S.t;
+      text.textContent = S.x; sql.textContent = S.s;
+      back.disabled = st === 0; next.disabled = st === STEPS.length - 1;
+      next.textContent = st === STEPS.length - 2 ? 'Next: ask a date' : 'Next';
+      // the notebook as a small table
+      var h = '<table><thead><tr><th>Price</th><th>From</th><th>Until</th></tr></thead><tbody>';
+      S.rows.forEach(function (r) {
+        h += '<tr class="' + (r.lost ? 'lost' : r.bad ? 'newbad' : '') + '"><td>' + r.p + '</td><td>' + name(r.s) + '</td><td>' +
+          (r.lost ? 'not kept' : r.e == null ? 'still today' : name(r.e)) + '</td></tr>';
+      });
+      nb.innerHTML = h + '</tbody></table>';
+      // the timeline
+      clear(svg);
+      for (var y = 2019; y <= 2027; y++) {
+        svg.appendChild(el('line', { x1: X(y), y1: 20, x2: X(y), y2: 160, class: 'ln', 'stroke-width': 1 }));
+        svg.appendChild(el('text', { x: X(y), y: 13, 'font-size': 11, 'text-anchor': 'middle', class: 'muted' }, y));
+      }
+      if (st >= 3) {
+        // days with two lines: 11.00 on top of 10.00 (Jan 2020 to Jun 2021) and of 12.50 (Jun 2021 to Jan 2024)
+        svg.appendChild(el('rect', { x: X(JAN20), y: 22, width: X(JAN24) - X(JAN20), height: 124, class: 'ovl' }));
+        svg.appendChild(el('text', { x: X(JAN20) + 4, y: 170, 'font-size': 11.5, class: 'bad' }, 'red = two prices on the same day'));
+      }
+      S.rows.forEach(lane);
+      ask.hidden = st !== 4;
+      if (st === 4) {
+        var t = 2019.5 + (+q.value) / 12;
+        qd.textContent = name(t);
+        svg.appendChild(el('line', { x1: X(t), y1: 20, x2: X(t), y2: 150, class: 'fgln', 'stroke-width': 2 }));
+        var a = answers(t), truth = t < JUN21 ? '10.00' : t < JAN24 ? '12.50' : '14.00';
+        var msg = 'The notebook gives <b class="' + (a.length === 1 && a[0].p === truth ? 'good' : 'bad') + '">' +
+          a.map(function (r) { return r.p; }).join(' and ') + '</b>' + (a.length > 1 ? ' (two prices for one day)' : '') +
+          '. Before step 4 it said <b>' + truth + '</b>.';
+        qa.innerHTML = msg;
+      }
+    }
+    dots.forEach(function (d) { d.addEventListener('click', function () { st = +d.dataset.st; draw(); }); });
+    back.addEventListener('click', function () { if (st > 0) { st--; draw(); } });
+    next.addEventListener('click', function () { if (st < STEPS.length - 1) { st++; draw(); } });
+    q.addEventListener('input', draw);
+    draw();
+  })();
+
+  /* 3a. Old date, small example: 10 versions sorted by "until" */
+  (function () {
+    var list = document.getElementById('toy-list'), inp = document.getElementById('toy-in'),
+        dOut = document.getElementById('toy-d'), na = document.getElementById('toy-na'), nf = document.getElementById('toy-nf'),
+        out = document.getElementById('toy-out'), bA = document.getElementById('toy-asof'), bF = document.getElementById('toy-first');
+    // [from, until] as months counted from January 2016; null = still the current version
+    var V = [[0, 14], [14, 29], [29, 37], [37, 52], [52, 60], [60, 75], [75, 90], [90, 104], [104, 117], [117, null]];
+    function mname(k) { return MONTHS[k % 12].slice(0, 3) + ' ' + (2016 + Math.floor(k / 12)); }
+    var items = V.map(function (v, i) {
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="vn">Version ' + (i + 1) + '</span><span class="vd">from ' + mname(v[0]) + '</span><span class="vd">until ' +
+        (v[1] == null ? 'now' : mname(v[1])) + '</span><span class="vs2"></span>';
+      list.appendChild(li); return li;
+    });
+    var timer = null, reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function reset() {
+      if (timer) { clearTimeout(timer); timer = null; }
+      items.forEach(function (li) { li.className = ''; li.querySelector('.vs2').textContent = ''; });
+    }
+    function date() { return +inp.value + 5; } // the 1st of June 2016 onwards
+    function firstAfter(d) { for (var i = 0; i < V.length; i++) if (V[i][1] == null || V[i][1] > d) return i; return V.length - 1; }
+    function mark(i, cls, txt) { items[i].className = cls; items[i].querySelector('.vs2').textContent = txt; }
+    function run(asof) {
+      reset(); (asof ? na : nf).textContent = '0';
+      var d = date(), f = firstAfter(d), n = 0;
+      for (var i = 0; i < f; i++) mark(i, 'skip', 'jumped over');
+      var last = asof ? V.length - 1 : f;
+      var i = f;
+      function step() {
+        n++;
+        if (i === f) mark(i, 'ans', 'read: the answer');
+        else mark(i, 'waste', 'read, thrown away');
+        (asof ? na : nf).textContent = n;
+        if (i < last) { i++; timer = setTimeout(step, reduce ? 0 : 260); }
+        else {
+          timer = null;
+          out.innerHTML = asof
+            ? 'AS OF jumped over ' + f + ' line' + (f === 1 ? '' : 's') + ', then read <b class="bad">' + n + '</b> to find one answer: version ' + (f + 1) + '.'
+            : 'The first-row query jumped to version ' + (f + 1) + ', read <b class="good">1</b> line and stopped. Same answer.';
+        }
+      }
+      step();
+    }
+    function onDate() {
+      dOut.textContent = MONTHS[date() % 12] + ' ' + (2016 + Math.floor(date() / 12));
+      reset(); na.textContent = '0'; nf.textContent = '0';
+      var f = firstAfter(date());
+      out.innerHTML = 'The answer is version ' + (f + 1) + '. AS OF will read ' + (V.length - f) + ' line' + (V.length - f === 1 ? '' : 's') + ' to find it. Press a button to watch.';
+    }
+    bA.addEventListener('click', function () { run(true); });
+    bF.addEventListener('click', function () { run(false); });
+    inp.addEventListener('input', onDate);
+    onDate();
+  })();
+
+  /* 3. Old date reads almost everything (Rabat, sample data) */
+  (function () {
+    // versions of Rabat that ended in each month, January 2002 to December 2026; one more is current
+    var C = [0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,2,2,0,0,0,1,1,5,3,2,1,0,0,5,7,7,3,4,7,1,2,0,3,7,4,4,5,5,5,3,2,6,3,15,8,5,18,9,2,6,8,6,5,7,16,15,11,2,9,5,19,7,13,12,11,5,6,16,8,10,9,10,11,8,8,6,14,6,10,6,13,17,4,6,7,7,2,10,4,6,5,6,15,4,4,4,3,13,14,10,7,11,6,11,8,5,2,4,5,5,7,5,16,9,10,4,41,18,28,9,9,7,7,5,6,11,19,13,17,2,0,1,6,5,1,0,2,2,0,6,1,3,4,2,12,10,14,14,17,7,2,2,2,3,7,5,6,6,11,1,11,5,7,2,3,2,10,5,11,5,3,5,1,2,4,15,3,3,9,12,3,3,2,7,0,1,2,9,0,4,2,1,15,9,16,2,6,3,6,5,9,9,2,4,5,10,7,3,5,4,3,8,15,13,0,7,5,0,2,2,6,4,1,0,11,8,3,24,9,4,7,2,5,4,5,14,17,7,8,10,0,9,6,1,13,4,7,6,9,7,13,11,8,10,8,12,4,6,2,4,5,5,0,2,5,7,7,3,22,15,23,1,18,4,5,14,7,7,12,19,9,12,0,0];
+    var svg = document.getElementById('old-svg'), inp = document.getElementById('old-in'),
+        dOut = document.getElementById('old-d'), nOut = document.getElementById('old-n');
+    var X0 = 10, W = 2.4, H = 80, BASE = 110, MAX = 41;
+    var bars = [];
+    for (var i = 0; i < C.length; i++) {
+      var h = C[i] ? Math.max(2, C[i] / MAX * H) : 0;
+      var r = el('rect', { x: X0 + i * W, y: BASE - h, width: W - 0.6, height: h });
+      svg.appendChild(r); bars.push(r);
+    }
+    var cur = el('rect', { x: X0 + C.length * W + 6, y: BASE - 6, width: 6, height: 6, class: 'amb' });
+    svg.appendChild(cur);
+    svg.appendChild(el('text', { x: X0 + C.length * W + 16, y: BASE, 'font-size': 11, class: 'muted' }, 'current'));
+    for (var y = 2002; y <= 2026; y += 4) {
+      svg.appendChild(el('text', { x: X0 + (y - 2002) * 12 * W, y: BASE + 16, 'font-size': 11, class: 'muted' }, y));
+    }
+    var mark = el('line', { y1: 8, y2: BASE + 2, class: 'fgln', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' });
+    svg.appendChild(mark);
+    var lab = el('text', { y: 140, 'font-size': 12 });
+    svg.appendChild(lab);
+    function draw() {
+      var k = +inp.value, n = 1;
+      var first = -1;
+      for (var i = 0; i < C.length; i++) {
+        var read = i >= k; if (read) n += C[i];
+        if (read && first < 0 && C[i]) first = i;
+        bars[i].setAttribute('class', i === first ? 'ind' : (read ? 'amb' : 'muted'));
+      }
+      var x = X0 + k * W - 0.3;
+      mark.setAttribute('x1', x); mark.setAttribute('x2', x);
+      lab.setAttribute('x', Math.min(x + 4, 560));
+      lab.textContent = 'AS OF reads every amber version: ' + fmt(n) + ' of 1,878';
+      var y = 2002 + Math.floor(k / 12);
+      dOut.textContent = MONTHS[k % 12] + ' ' + y;
+      nOut.textContent = fmt(n);
+    }
+    inp.addEventListener('input', draw);
+    draw();
+  })();
+
+  /* 4. OPTIMIZE says it worked (retention.sql) */
+  (function () {
+    var next = document.getElementById('opt-next'), reset = document.getElementById('opt-reset'),
+        v = document.getElementById('opt-v'), kb = document.getElementById('opt-kb'), bar = document.getElementById('opt-bar'),
+        term = document.getElementById('opt-term');
+    var S = [
+      { btn: 'Run: DELETE HISTORY before 2010', v: 31102, kb: 4352, t: 'A copy of the article table, before any cleanup.' },
+      { btn: 'Run: OPTIMIZE TABLE', v: 23670, kb: 4352,
+        t: 'DELETE HISTORY FROM article_copy\n  BEFORE SYSTEM_TIME \'2010-01-01\';\n<span class="k">Query OK, 7432 rows affected</span>\n<span class="m">-- 7,432 versions gone. Size: the same.</span>' },
+      { btn: 'Run: SET alter_history = KEEP, then OPTIMIZE', v: 23670, kb: 4352,
+        t: 'OPTIMIZE TABLE article_copy;\nnote    Table does not support optimize, doing recreate + analyze instead\n<span class="e">error   Not allowed for system-versioned `timemachine`.`article_copy`.\n        Change @@system_versioning_alter_history to proceed with ALTER.\nstatus  Operation failed</span>\n<span class="k">3 rows in set</span>  <span class="m">-- no error is raised, a script carries on. Size: the same.</span>' },
+      { btn: 'Done', v: 23670, kb: 3504,
+        t: 'SET system_versioning_alter_history = KEEP;\nOPTIMIZE TABLE article_copy;\nnote    Table does not support optimize, doing recreate + analyze instead\n<span class="k">status  OK</span>\n<span class="m">-- the table is rebuilt and the space comes back.</span>' }
+    ];
+    var i = 0;
+    function draw() {
+      var s = S[i];
+      v.textContent = fmt(s.v); kb.textContent = fmt(s.kb) + ' KB';
+      bar.style.width = (s.kb / 4352 * 100) + '%';
+      term.innerHTML = s.t;
+      next.textContent = s.btn; next.disabled = i === S.length - 1;
+    }
+    next.addEventListener('click', function () { if (i < S.length - 1) { i++; draw(); } });
+    reset.addEventListener('click', function () { i = 0; draw(); });
+    draw();
+  })();
+
+  /* insights: pruning */
+  (function () {
+    var svg = document.getElementById('pr-svg'), inp = document.getElementById('pr-in'),
+        yOut = document.getElementById('pr-yr'), out = document.getElementById('pr-out');
+    var cells = [];
+    for (var i = 0; i < 27; i++) {
+      var r = el('rect', { x: i * 20, y: 2, width: 17, height: 18, rx: 3 });
+      svg.appendChild(r); cells.push(r);
+    }
+    svg.appendChild(el('text', { x: 0, y: 32, 'font-size': 10, class: 'muted' }, '2001'));
+    svg.appendChild(el('text', { x: 25 * 20 + 17, y: 32, 'font-size': 10, class: 'muted', 'text-anchor': 'end' }, '2026'));
+    svg.appendChild(el('text', { x: 26 * 20 + 17, y: 32, 'font-size': 10, class: 'muted', 'text-anchor': 'end' }, ''));
+    function draw() {
+      var Y = +inp.value, n = 0;
+      yOut.textContent = Y;
+      cells.forEach(function (c, i) {
+        var open = i === 26 || (2001 + i) >= Y; if (open) n++;
+        c.setAttribute('class', open ? 'ind' : 'box');
+      });
+      out.innerHTML = 'Opens <b>' + n + ' of 27</b> partitions (the last one holds the current rows).';
+    }
+    inp.addEventListener('input', draw); draw();
+  })();
+
+  /* insights: text inside the row or not */
+  (function () {
+    var btns = [].slice.call(document.querySelectorAll('[data-tx]'));
+    var mb = document.getElementById('tx-mb'), pg = document.getElementById('tx-pg'),
+        b1 = document.getElementById('tx-bar1'), b2 = document.getElementById('tx-bar2'), num = document.getElementById('tx-num');
+    var D = [{ mb: 5.0, pg: 31 }, { mb: 80.2, pg: 4870 }];
+    function set(k) {
+      mb.textContent = D[k].mb.toFixed(1) + ' MB'; pg.textContent = fmt(D[k].pg);
+      b1.style.width = (D[k].mb / 80.2 * 100) + '%'; b2.style.width = Math.max(1, D[k].pg / 4870 * 100) + '%';
+    }
+    btns.forEach(function (b) { b.addEventListener('click', function () { press(btns, b); set(+b.dataset.tx); }); });
+    set(0);
+  })();
+
+  /* insights: dump */
+  (function () {
+    var btns = [].slice.call(document.querySelectorAll('[data-dp]'));
+    var n = document.getElementById('dp-n'), bar = document.getElementById('dp-bar'), num = document.getElementById('dp-num');
+    var D = [45, 31179];
+    function set(k) {
+      n.textContent = fmt(D[k]); num.textContent = fmt(D[k]);
+      bar.style.width = Math.max(0.6, D[k] / 31179 * 100) + '%';
+    }
+    btns.forEach(function (b) { b.addEventListener('click', function () { press(btns, b); set(+b.dataset.dp); }); });
+    set(0);
+  })();
+})();
+</script>
+</body>
+</html>

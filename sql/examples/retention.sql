@@ -5,8 +5,8 @@
 --     on a table partitioned by SYSTEM_TIME, oldest years first;
 --   * DELETE HISTORY ... BEFORE SYSTEM_TIME: removes the versions that ENDED
 --     before a moment, on any versioned table.
--- Both keep the current rows. Numbers (rows, bytes, time) are in
--- results/measurements.txt and docs/measurements.md.
+-- Both keep the current rows. The size of the copy is printed after each
+-- step; the timings are in results/measurements.txt and docs/measurements.md.
 --   scripts/db.sh -t < sql/examples/retention.sql
 USE timemachine;
 SET time_zone = '+00:00';
@@ -20,6 +20,8 @@ SET @@system_versioning_insert_history = 0;
 
 SELECT 'before' AS step, COUNT(*) AS versions, MIN(row_end) AS oldest_end
 FROM article_copy FOR SYSTEM_TIME ALL;
+SELECT 'size before' AS step, ROUND(SUM(DATA_LENGTH + INDEX_LENGTH) / 1024) AS size_kb
+FROM information_schema.PARTITIONS WHERE TABLE_SCHEMA = 'timemachine' AND TABLE_NAME = 'article_copy';
 
 -- 1. The partition way: drop whole years. p0 holds the versions that ended
 --    in 2001, p1 those of 2002, and so on. Only the oldest partitions can go
@@ -31,6 +33,8 @@ WHERE TABLE_SCHEMA = 'timemachine' AND TABLE_NAME = 'article_copy'
 ALTER TABLE article_copy DROP PARTITION p0, p1, p2;
 SELECT 'after DROP PARTITION p0, p1, p2' AS step, COUNT(*) AS versions, MIN(row_end) AS oldest_end
 FROM article_copy FOR SYSTEM_TIME ALL;
+SELECT 'size after DROP PARTITION' AS step, ROUND(SUM(DATA_LENGTH + INDEX_LENGTH) / 1024) AS size_kb
+FROM information_schema.PARTITIONS WHERE TABLE_SCHEMA = 'timemachine' AND TABLE_NAME = 'article_copy';
 
 -- 2. The row way: forget every version that ended before 2010, whatever
 --    the partitions. Current rows stay.
@@ -39,6 +43,9 @@ DELETE HISTORY FROM article_copy BEFORE SYSTEM_TIME '2010-01-01 00:00:00';
 SELECT 'after DELETE HISTORY' AS step, COUNT(*) AS versions, MIN(row_end) AS oldest_end
 FROM article_copy FOR SYSTEM_TIME ALL;
 SELECT COUNT(*) AS current_rows FROM article_copy;
+-- 7,432 versions are gone and the table is as large as before.
+SELECT 'size after DELETE HISTORY' AS step, ROUND(SUM(DATA_LENGTH + INDEX_LENGTH) / 1024) AS size_kb
+FROM information_schema.PARTITIONS WHERE TABLE_SCHEMA = 'timemachine' AND TABLE_NAME = 'article_copy';
 
 -- An old date now has no answer at all: the time machine stops at 2010.
 SELECT COUNT(*) AS rows_as_of_2005
@@ -51,5 +58,7 @@ OPTIMIZE TABLE article_copy;
 SET @@system_versioning_alter_history = KEEP;
 OPTIMIZE TABLE article_copy;
 SET @@system_versioning_alter_history = ERROR;
+SELECT 'size after the rebuild' AS step, ROUND(SUM(DATA_LENGTH + INDEX_LENGTH) / 1024) AS size_kb
+FROM information_schema.PARTITIONS WHERE TABLE_SCHEMA = 'timemachine' AND TABLE_NAME = 'article_copy';
 
 DROP TABLE article_copy;
