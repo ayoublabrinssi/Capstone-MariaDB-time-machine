@@ -1,34 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1010 270" width="1010" height="270" font-family="Arial, Helvetica, 'Liberation Sans', sans-serif" role="img"><title>Rows read to give one answer about Rabat: AS OF reads 1,845, 1,385 and 60 rows; the first-row query reads 1 every time</title>
-<text x="16" y="26" font-size="13" text-anchor="start" fill="#111111" style="font-weight:bold;">Rows read to give one answer about Rabat</text>
+<rect x="0.0" y="0.0" width="1010.0" height="270.0" rx="8" fill="#edeef2" stroke="none" stroke-width="0"/>
+<text x="16" y="26" font-size="13" text-anchor="start" fill="#1c1f3b" style="font-weight:bold;">Rows read to give one answer about Rabat</text>
 <rect x="16.0" y="40.0" width="14.0" height="12.0" rx="2" fill="#4436c8" stroke="none" stroke-width="0"/>
-<text x="36" y="50" font-size="11.5" text-anchor="start" fill="#111111" style="">AS OF</text>
+<text x="36" y="50" font-size="11.5" text-anchor="start" fill="#1c1f3b" style="">AS OF</text>
 <rect x="96.0" y="40.0" width="14.0" height="12.0" rx="2" fill="#c98a12" stroke="none" stroke-width="0"/>
-<text x="116" y="50" font-size="11.5" text-anchor="start" fill="#111111" style="">the first-row query</text>
-<line x1="130.0" y1="64" x2="130.0" y2="226" stroke="#d0d3da" stroke-width="1"/>
+<text x="116" y="50" font-size="11.5" text-anchor="start" fill="#1c1f3b" style="">the first-row query</text>
+<line x1="130.0" y1="64" x2="130.0" y2="226" stroke="#d6d9e4" stroke-width="1"/>
 <text x="130.0" y="244" font-size="11" text-anchor="middle" fill="#5d6283" style="">0</text>
-<line x1="322.5" y1="64" x2="322.5" y2="226" stroke="#d0d3da" stroke-width="1"/>
+<line x1="322.5" y1="64" x2="322.5" y2="226" stroke="#d6d9e4" stroke-width="1"/>
 <text x="322.5" y="244" font-size="11" text-anchor="middle" fill="#5d6283" style="">500</text>
-<line x1="515.0" y1="64" x2="515.0" y2="226" stroke="#d0d3da" stroke-width="1"/>
+<line x1="515.0" y1="64" x2="515.0" y2="226" stroke="#d6d9e4" stroke-width="1"/>
 <text x="515.0" y="244" font-size="11" text-anchor="middle" fill="#5d6283" style="">1,000</text>
-<line x1="707.5" y1="64" x2="707.5" y2="226" stroke="#d0d3da" stroke-width="1"/>
+<line x1="707.5" y1="64" x2="707.5" y2="226" stroke="#d6d9e4" stroke-width="1"/>
 <text x="707.5" y="244" font-size="11" text-anchor="middle" fill="#5d6283" style="">1,500</text>
-<line x1="900.0" y1="64" x2="900.0" y2="226" stroke="#d0d3da" stroke-width="1"/>
+<line x1="900.0" y1="64" x2="900.0" y2="226" stroke="#d6d9e4" stroke-width="1"/>
 <text x="900.0" y="244" font-size="11" text-anchor="middle" fill="#5d6283" style="">2,000</text>
 <text x="515.0" y="262" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">rows read</text>
-<text x="118" y="96" font-size="12.5" text-anchor="end" fill="#111111" style="font-weight:bold;">June 2005</text>
+<text x="118" y="96" font-size="12.5" text-anchor="end" fill="#1c1f3b" style="font-weight:bold;">June 2005</text>
 <rect x="130.0" y="72.0" width="710.3" height="18.0" rx="2" fill="#4436c8" stroke="none" stroke-width="0"/>
-<text x="848.325" y="86" font-size="12" text-anchor="start" fill="#111111" style="font-weight:bold;">1,845</text>
+<text x="848.325" y="86" font-size="12" text-anchor="start" fill="#1c1f3b" style="font-weight:bold;">1,845</text>
 <rect x="130.0" y="94.0" width="2.5" height="18.0" rx="1" fill="#c98a12" stroke="none" stroke-width="0"/>
-<text x="140" y="108" font-size="12" text-anchor="start" fill="#111111" style="font-weight:bold;">1</text>
-<text x="118" y="150" font-size="12.5" text-anchor="end" fill="#111111" style="font-weight:bold;">June 2010</text>
+<text x="140" y="108" font-size="12" text-anchor="start" fill="#1c1f3b" style="font-weight:bold;">1</text>
+<text x="118" y="150" font-size="12.5" text-anchor="end" fill="#1c1f3b" style="font-weight:bold;">June 2010</text>
 <rect x="130.0" y="126.0" width="533.2" height="18.0" rx="2" fill="#4436c8" stroke="none" stroke-width="0"/>
-<text x="671.225" y="140" font-size="12" text-anchor="start" fill="#111111" style="font-weight:bold;">1,385</text>
+<text x="671.225" y="140" font-size="12" text-anchor="start" fill="#1c1f3b" style="font-weight:bold;">1,385</text>
 <rect x="130.0" y="148.0" width="2.5" height="18.0" rx="1" fill="#c98a12" stroke="none" stroke-width="0"/>
-<text x="140" y="162" font-size="12" text-anchor="start" fill="#111111" style="font-weight:bold;">1</text>
-<text x="118" y="204" font-size="12.5" text-anchor="end" fill="#111111" style="font-weight:bold;">June 2026</text>
+<text x="140" y="162" font-size="12" text-anchor="start" fill="#1c1f3b" style="font-weight:bold;">1</text>
+<text x="118" y="204" font-size="12.5" text-anchor="end" fill="#1c1f3b" style="font-weight:bold;">June 2026</text>
 <rect x="130.0" y="180.0" width="23.1" height="18.0" rx="2" fill="#4436c8" stroke="none" stroke-width="0"/>
-<text x="161.1" y="194" font-size="12" text-anchor="start" fill="#111111" style="font-weight:bold;">60</text>
+<text x="161.1" y="194" font-size="12" text-anchor="start" fill="#1c1f3b" style="font-weight:bold;">60</text>
 <rect x="130.0" y="202.0" width="2.5" height="18.0" rx="1" fill="#c98a12" stroke="none" stroke-width="0"/>
-<text x="140" y="216" font-size="12" text-anchor="start" fill="#111111" style="font-weight:bold;">1</text>
-<polyline points="130,64 130,226" fill="none" stroke="#222222" stroke-width="1.2"/>
+<text x="140" y="216" font-size="12" text-anchor="start" fill="#1c1f3b" style="font-weight:bold;">1</text>
+<polyline points="130,64 130,226" fill="none" stroke="#5d6283" stroke-width="1.2"/>
 </svg>

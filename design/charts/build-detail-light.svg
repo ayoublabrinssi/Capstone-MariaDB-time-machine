@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1010 300" width="1010" height="300" font-family="Arial, Helvetica, 'Liberation Sans', sans-serif" role="img"><title>How the project is built, with the file of each step</title>
+<rect x="0.0" y="0.0" width="1010.0" height="300.0" rx="8" fill="#edeef2" stroke="none" stroke-width="0"/>
+<text x="293" y="26" font-size="13" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">1. Fetch</text>
+<text x="525" y="26" font-size="13" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">2. Prepare</text>
+<text x="745" y="26" font-size="13" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">3. Load</text>
+<text x="925" y="26" font-size="13" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">4. Use</text>
+<line x1="16" y1="38" x2="994" y2="38" stroke="#d6d9e4" stroke-width="1"/>
+<rect x="16.0" y="130.0" width="130.0" height="50.0" rx="24" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<text x="81.0" y="151.0" font-size="12.5" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">Wikipedia API</text>
+<text x="81.0" y="167.0" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">every revision</text>
+<polyline points="146,155 214,155" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<polyline points="203,160 214,155 203,150" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<text x="180" y="147" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">fetch.py</text>
+<rect x="226.0" y="120.0" width="150.0" height="54.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<rect x="222.0" y="124.0" width="150.0" height="54.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<rect x="218.0" y="128.0" width="150.0" height="54.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<text x="293.0" y="151.0" font-size="12.5" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">data/raw/</text>
+<text x="293.0" y="167.0" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">one JSON per article</text>
+<polyline points="376,155 405,155" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<polyline points="405,155 405,93 446,93" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<polyline points="435,98 446,93 435,88" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<polyline points="405,155 405,229 446,229" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<polyline points="435,234 446,229 435,224" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<text x="413" y="159" font-size="11.5" text-anchor="start" fill="#5d6283" style="">fetch/prepare.py</text>
+<rect x="458.0" y="58.0" width="150.0" height="54.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<rect x="454.0" y="62.0" width="150.0" height="54.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<rect x="450.0" y="66.0" width="150.0" height="54.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<text x="525.0" y="89.0" font-size="12.5" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">data/load/</text>
+<text x="525.0" y="105.0" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">TSV files</text>
+<rect x="458.0" y="194.0" width="150.0" height="54.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<rect x="454.0" y="198.0" width="150.0" height="54.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<rect x="450.0" y="202.0" width="150.0" height="54.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<text x="525.0" y="225.0" font-size="12.5" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">220 expected answers</text>
+<text x="525.0" y="241.0" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">computed in Python</text>
+<path d="M679 76 v108 a66 12 0 0 0 132 0 v-108" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<ellipse cx="745" cy="76" rx="66" ry="12" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<text x="745" y="124" font-size="12.5" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">MariaDB 12.3.3</text>
+<text x="745" y="140" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">page, revision_text,</text>
+<text x="745" y="156" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">article, article_period</text>
+<polyline points="608,93 677,93" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<polyline points="666,98 677,93 666,88" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<text x="642" y="85" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">02_load.sql</text>
+<polyline points="608,229 745,229 745,198" fill="none" stroke="#5d6283" stroke-width="1.2" stroke-dasharray="5,4"/>
+<polyline points="750,209 745,198 740,209" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<text x="676" y="247" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">tests/tests.sql compares</text>
+<rect x="856.0" y="60.0" width="138.0" height="50.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<text x="925.0" y="81.0" font-size="12.5" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">app/</text>
+<text x="925.0" y="97.0" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">the page</text>
+<polyline points="811,140 833,140 833,85 854,85" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<polyline points="843,90 854,85 843,80" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<rect x="856.0" y="138.0" width="138.0" height="50.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<text x="925.0" y="159.0" font-size="12.5" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">sql/queries.sql</text>
+<text x="925.0" y="175.0" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">sql/examples/</text>
+<polyline points="811,140 833,140 833,163 854,163" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<polyline points="843,168 854,163 843,158" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<rect x="856.0" y="216.0" width="138.0" height="50.0" rx="0" fill="#e3e0fb" stroke="#4436c8" stroke-width="1.2"/>
+<text x="925.0" y="237.0" font-size="12.5" text-anchor="middle" fill="#1c1f3b" style="font-weight:bold;">scripts/measure.py</text>
+<text x="925.0" y="253.0" font-size="11.5" text-anchor="middle" fill="#5d6283" style="">scratch database</text>
+<polyline points="811,140 833,140 833,241 854,241" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<polyline points="843,246 854,241 843,236" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<polyline points="81,130 81,54 745,54 745,62" fill="none" stroke="#5d6283" stroke-width="1.2" stroke-dasharray="5,4"/>
+<polyline points="740,51 745,62 750,51" fill="none" stroke="#5d6283" stroke-width="1.2"/>
+<text x="260" y="50" font-size="11.5" text-anchor="start" fill="#5d6283" style="">app/exact.py: the text of one revision, when it is first opened</text>
+</svg>

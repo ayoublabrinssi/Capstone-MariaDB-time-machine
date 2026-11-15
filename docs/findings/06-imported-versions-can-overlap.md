@@ -19,15 +19,12 @@ From step 2 of [sql/examples/limits.sql](../../sql/examples/limits.sql), with `s
 | a version that ends before it starts | error 4112, refused |
 | two versions of id 4: January 2020 to January 2021, and June 2020 to January 2022 | **accepted** |
 
-```mermaid
-gantt
-    title Two imported versions of id 4
-    dateFormat YYYY-MM-DD
-    todayMarker off
-    axisFormat %b %Y
-    version 1 : 2020-01-01, 2021-01-01
-    version 2 : crit, 2020-06-01, 2022-01-01
-```
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../design/charts/overlap-dark.svg">
+  <img src="../../design/charts/overlap-light.svg" alt="Two imported versions of id 4 on an editing timeline: version 1 from January 2020 to January 2021, version 2 from June 2020 to January 2022 on a second track; the playhead AS OF 2020-09-01 stands on both" width="900">
+</picture>
+</p>
 
 `AS OF '2020-09-01'` then returns both rows, for one primary key:
 

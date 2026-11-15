@@ -46,23 +46,14 @@ The server has to close the current line, 14.00, "until 1 January 2020". But tha
 
 On a timeline, before and after:
 
-```mermaid
-gantt
-    title The price of tea, before and after one UPDATE with the clock set back to 2020
-    dateFormat YYYY-MM-DD
-    todayMarker off
-    axisFormat %Y
-    section Before
-    10.00 : 2019-03-01, 2021-06-01
-    12.50 : 2021-06-01, 2024-01-15
-    14.00 : 2024-01-15, 2026-11-13
-    section After
-    10.00 : 2019-03-01, 2021-06-01
-    12.50 : 2021-06-01, 2024-01-15
-    11.00, overlaps 10.00 and 12.50 : crit, 2020-01-01, 2026-11-13
-```
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../design/charts/clock-back-dark.svg">
+  <img src="../../design/charts/clock-back-light.svg" alt="The price of tea on an editing timeline. Before: 10.00, 12.50, 14.00 one after the other. After: 10.00 and 12.50, 14.00 not kept, and 11.00 from January 2020 on a second track, covering the same days as 10.00 and 12.50" width="900">
+</picture>
+</p>
 
-The 11.00 line lies on top of the 10.00 and 12.50 lines from January 2020 to January 2024. That is what "overlap" means here: two lines for the same days.
+Read it like the timeline of a video editor: each clip is one line of the notebook. After the update, 11.00 needs a second track, because from January 2020 to January 2024 it covers the same days as 10.00 and 12.50 (the red stripes). That is what "overlap" means here: two lines for the same days. The dotted lines are the three dates of the table below.
 
 **Ask the notebook a date:**
 

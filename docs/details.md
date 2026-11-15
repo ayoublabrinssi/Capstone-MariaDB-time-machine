@@ -138,18 +138,12 @@ Why it looks like this:
 
 ## How it is built
 
-```mermaid
-flowchart LR
-  W[Wikipedia API] -->|fetch/fetch.py| R[data/raw<br>one JSON per article]
-  R -->|fetch/prepare.py| T[data/load<br>TSV files]
-  R -->|fetch/prepare.py| E[220 expected answers<br>computed in Python]
-  T -->|sql/02_load.sql| DB[(MariaDB 12.3.3<br>page, revision_text,<br>article, article_period)]
-  DB --> P[app/<br>the page]
-  W -.->|app/exact.py<br>one revision, when first opened| DB
-  DB --> Q[sql/queries.sql<br>sql/examples]
-  E -->|tests/tests.sql| DB
-  DB -->|scripts/measure.py<br>scratch database| M[results/measurements.txt]
-```
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../design/charts/build-detail-dark.svg">
+  <img src="../design/charts/build-detail-light.svg" alt="Wikipedia API, fetch.py, data/raw; fetch/prepare.py makes data/load TSV files and 220 expected answers; 02_load.sql loads MariaDB 12.3.3 (page, revision_text, article, article_period); tests/tests.sql compares; app/, sql/queries.sql and sql/examples/, scripts/measure.py read it; app/exact.py asks Wikipedia for the text of one revision when it is first opened" width="900">
+</picture>
+</p>
 
 - **Fetch.** `fetch/fetch.py` asks the MediaWiki API for every revision of each article and writes one JSON file per article. It can stop and continue, and with `--snapshot` it stops at a fixed revision per article so two people get the same data.
 - **Prepare.** `fetch/prepare.py` turns the JSON into tab-separated files. Here a revision becomes a version: its end is the time of the next revision of the same article. The same script picks 220 moments and works out, without MariaDB, which revision was live at each. Those answers are what the tests compare against.

@@ -16,7 +16,7 @@ Everything visual, kept apart from the code. The page itself uses its own copy o
 | <img src="icons/folder.svg" width="24" height="24" alt="" align="absmiddle"> [`logo/`](logo) | the logo in colour, dark, black and white, and a PNG | SVG paths |
 | <img src="icons/search.svg" width="24" height="24" alt="" align="absmiddle"> [`icons/`](icons) | the icons of the README and `docs/details.md` | `node design/make_icons.mjs`, from [Kubai Icons](https://github.com/kubai087/kubai-icons) (MIT, see [`icons/LICENSE`](icons/LICENSE)) |
 | <img src="icons/layers.svg" width="24" height="24" alt="" align="absmiddle"> [`uml/`](uml) | the class diagram and the object diagram of the data model, the sequence diagram of one request | `python3 design/draw_uml.py` |
-| <img src="icons/ruler.svg" width="24" height="24" alt="" align="absmiddle"> [`charts/`](charts) | the Rabat timeline, how the data is built, the rows read for old dates | `python3 design/draw_charts.py` |
+| <img src="icons/ruler.svg" width="24" height="24" alt="" align="absmiddle"> [`charts/`](charts) | the Rabat timeline, how the data is built (short and with file names), the rows read for old dates, the timelines of findings 2 and 6 | `python3 design/draw_charts.py` |
 | <img src="icons/monitor.svg" width="24" height="24" alt="" align="absmiddle"> [`screenshots/`](screenshots) | the page, in light and dark | taken from the running page |
 
 ## Colours
