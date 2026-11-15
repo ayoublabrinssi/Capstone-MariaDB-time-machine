@@ -41,6 +41,7 @@ When the code changes, this log is updated so it still matches. New entries go a
 | 10 | 2026-11-14 | the data model as UML | asked for the data model to be redrawn as a UML class diagram and an object diagram, in standard notation, with a table that explains the signs; checked the diagrams before the commit | drew the class diagram and the object diagram with a small script (`design/draw_uml.py`) and put them in the README in place of the ER diagram |
 | 11 | 2026-11-15 | icons | chose the Kubai Icons set and asked for the emojis in the README to be replaced by its icons, in the colours of the page | made the icons in those colours with a small script (`design/make_icons.mjs`) and put them in place of the emojis in `README.md` and `docs/details.md` |
 | 12 | 2026-11-15 | plain diagrams in the README | found the diagrams GitHub draws hard to read, with zoom buttons that take space; asked for plain pictures in the style of the UML diagrams, checked against the code, and for the Rabat graph to read like the timeline of a video editor; checked the pictures before the commit | drew the timeline, the build picture, the old-dates chart (`design/draw_charts.py`) and the request as a UML sequence diagram (`design/draw_uml.py`), and put them in the README in place of the Mermaid diagrams |
+| 13 | 2026-11-15 | the start menu | asked for the start script to offer simple choices, with the quick start first; ran it before the commit | made the three-article sample option 1 and the default of `scripts/start.sh`, and updated the README quick start and `docs/details.md` |
 
 ## Prompts
 
@@ -123,3 +124,7 @@ Before this, on the findings explained one by one:
 ### 12. Plain diagrams in the README (15 Nov 2026)
 
 > Instead of the diagrams with the zoom buttons, draw them like the UML part, and make sure they are correct. The graph of the idea is a bit ambiguous: make it look like the timeline of a video editing program, so it is easy to understand at a glance.
+
+### 13. The start menu (15 Nov 2026)
+
+> When you run the script, it should give you choices: the quick and easy one, the full download of the articles, or help. The user picks option 1 or 2.

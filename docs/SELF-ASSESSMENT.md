@@ -13,7 +13,7 @@ Newest week first.
 - **Hours:** TO FILL IN
 - **Evidence:** `results/measurements.txt` and the two repeat runs, `results/limits.txt`, `results/import_history.txt`, `results/backup.txt`, `results/tests.txt`, `docs/import-tutorial.md`, `docs/findings/`, `docs/details.md`, `docs/contributions.md`.
 - **Plan for next week:** file the findings with MariaDB (the list is in `docs/contributions.md`), prepare the final presentation of 3 December.
-- **AI tools:** Claude (Anthropic): the measurements of section 4, the limits and import examples, the tutorial and notes, CI, tests, the findings pages, the shorter README, the UML diagrams, the icons, the plain diagrams in the README. AI log entries 7 to 12.
+- **AI tools:** Claude (Anthropic): the measurements of section 4, the limits and import examples, the tutorial and notes, CI, tests, the findings pages, the shorter README, the UML diagrams, the icons, the plain diagrams in the README, the start menu. AI log entries 7 to 13.
 - **Notes, blockers:**
 
 ## Week of 2 to 8 November 2026

@@ -92,10 +92,10 @@ You need Docker with Compose and Python 3.8 or newer. The scripts are POSIX shel
 ```sh
 git clone https://github.com/ayoublabrinssi/Capstone-MariaDB-time-machine.git
 cd Capstone-MariaDB-time-machine
-scripts/start.sh --data sample
+scripts/start.sh
 ```
 
-That one command starts MariaDB 12.3.3, loads three articles that come with the repository (Rabat, Ifrane and Asilah), runs every test and starts the page on http://127.0.0.1:8000. About a minute, no download.
+It asks which data you want: press Enter for the quick one. That starts MariaDB 12.3.3, loads three articles that come with the repository (Rabat, Ifrane and Asilah), runs every test and starts the page on http://127.0.0.1:8000. About a minute, no download. Type 2 for all 45 articles.
 
 | To | Run |
 |---|---|

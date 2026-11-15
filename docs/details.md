@@ -27,9 +27,9 @@ The quick way is `scripts/start.sh`, see the [README](../README.md#quick-start).
 
 ### Which data
 
-`start.sh` asks first, before anything else. `--data sample`, `--data fixed` or `--data newest` answers without asking.
+`start.sh` asks first, before anything else; Enter picks the quick sample. `--data sample`, `--data fixed` or `--data newest` answers without asking.
 
-| | Sample | Fixed date (default) | Newest |
+| | 1. Quick sample (default) | 2. Fixed date | 3. Newest |
 |---|---|---|---|
 | Articles | Rabat, Ifrane and Asilah, in [data/sample/](../data/sample) | all 45 | all 45 |
 | Edits | up to 26 Oct 2026, 2,600 revisions | up to 26 Oct 2026, 31,179 revisions; the last one of each article is in [data/snapshot.tsv](../data/snapshot.tsv) | every edit up to the day you run it |

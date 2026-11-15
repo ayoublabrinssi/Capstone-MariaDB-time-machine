@@ -7,9 +7,10 @@
 #   5. builds and loads the database, if it is not loaded yet
 #   6. runs the tests
 #   7. starts the page
-# Before step 1 it asks which data to use: the fixed date, 26 Oct 2026
-# (default; the data the tests and results were made on), the newest edits,
-# or the sample of three articles that comes with the repository (no download).
+# Before step 1 it asks which data to use: the quick sample of three articles
+# that comes with the repository (default, no download), all 45 articles at the
+# fixed date, 26 Oct 2026 (the data the tests and results were made on), or all
+# 45 articles with the newest edits.
 # Run it again any time: the steps already done are skipped.
 #
 #   scripts/start.sh                  everything
@@ -64,19 +65,23 @@ elif [ "$current" = sample ] && [ -z "$data" ] && [ "$refetch" = 0 ]; then
   data=sample   # the sample is loaded and nothing else was asked for: keep it
   fetch=0
 elif [ -z "$data" ]; then
-  data=fixed
+  data=sample
+  fetch=0
   if [ -t 0 ]; then
     echo "Which data should the time machine hold?"
-    echo "  1  Fixed date, 26 Oct 2026 (default). All 45 articles, the data the tests and the"
-    echo "     results in this repository were made on. About 15 minutes of download."
-    echo "  2  Newest, all 45 articles with every edit up to today. Same download; results"
-    echo "     may differ from the test results and the numbers in the README."
-    echo "  3  Sample: Rabat, Ifrane and Asilah, which come with the repository."
+    echo "  1  Quick (default): Rabat, Ifrane and Asilah, which come with the repository."
     echo "     No download, ready in about a minute. The other 42 cities are missing."
+    echo "  2  Full, fixed date: all 45 articles as they were on 26 Oct 2026, the data the"
+    echo "     tests and the results in this repository were made on. About 15 minutes of download."
+    echo "  3  Full, newest: all 45 articles with every edit up to today. Same download; results"
+    echo "     may differ from the test results and the numbers in the README."
+    echo "  Help: stop with Ctrl+C and run scripts/start.sh --help"
     printf "Choose 1, 2 or 3 [1]: "
     read -r answer
-    [ "$answer" = 2 ] && data=newest
-    if [ "$answer" = 3 ]; then data=sample; fetch=0; fi
+    case "$answer" in
+      2) data=fixed; fetch=1 ;;
+      3) data=newest; fetch=1 ;;
+    esac
   fi
 fi
 source=full
