@@ -63,23 +63,14 @@ FROM article FOR SYSTEM_TIME AS OF TIMESTAMP '2010-01-01 23:59:59'
 WHERE page_id = 57400;   -- Rabat
 ```
 
-```mermaid
-gantt
-    title Rabat around New Year 2010. Each bar is one version of the article.
-    dateFormat YYYY-MM-DD HH:mm
-    axisFormat %d %b
-    todayMarker off
-    section Versions
-    by Xqbot                  : 2009-11-30 02:09, 2009-12-08 01:24
-    by Marek69                : 2009-12-08 01:42, 2009-12-14 21:48
-    by SieBot, the answer     : crit, 2009-12-15 13:52, 2010-01-10 22:01
-    by Starzynka              : 2010-01-10 22:01, 2010-01-12 15:36
-    by YUL89YYZ               : 2010-01-12 15:36, 2010-01-13 18:33
-    section Your question
-    AS OF 1 January 2010      : milestone, 2010-01-01 23:59, 0d
-```
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="design/charts/timeline-dark.svg">
+  <img src="design/charts/timeline-light.svg" alt="Rabat around New Year 2010 as an editing timeline. Each clip is one version of the article; the playhead at 1 January 2010 stands on the clip saved by SieBot, revision 331806877" width="900">
+</picture>
+</p>
 
-MariaDB keeps each version with the moment it started and the moment the next edit replaced it. `AS OF` returns the one that was live at the moment you ask about. Here that is revision 331806877, saved by SieBot on 15 December 2009 and replaced on 10 January 2010. The bars are real data; four edits that lived less than a day are left out so the others stay readable.
+Read it like the timeline of a video editor. Each clip is one version of Rabat: it starts when the edit was saved (`row_start`) and ends when the next edit replaced it (`row_end`). The thin slices are edits that lived a few minutes. `AS OF` is the playhead: it returns the clip under it. Here that is revision 331806877, saved by SieBot on 15 December 2009 and replaced on 10 January 2010. The clips are the real versions from the table.
 
 ## At a glance
 
@@ -114,47 +105,30 @@ That one command starts MariaDB 12.3.3, loads three articles that come with the 
 
 ## How it works
 
-```mermaid
-flowchart LR
-  W([Wikipedia API]) -->|fetch.py| R[45 JSON files<br>31,179 revisions]
-  R -->|prepare.py| T[TSV files<br>real edit times]
-  R -->|prepare.py| E[220 expected answers<br>worked out in Python]
-  T -->|02_load.sql| DB[(MariaDB 12.3.3<br>system-versioned)]
-  E -->|tests compare| DB
-  DB --> P[The page]
-  DB --> Q[13 queries<br>6 examples]
-  DB --> M[Measurements]
-```
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="design/charts/build-dark.svg">
+  <img src="design/charts/build-light.svg" alt="Wikipedia API, fetch.py, 45 JSON files with 31,179 revisions; prepare.py makes TSV files with the real edit times and 220 expected answers; 02_load.sql loads the TSV files into MariaDB 12.3.3; the tests compare the answers; the page, 13 queries, 6 examples and the measurements read MariaDB" width="900">
+</picture>
+</p>
 
 1. **Fetch.** [fetch/fetch.py](fetch/fetch.py) asks Wikipedia for every revision of each article.
 2. **Prepare.** [fetch/prepare.py](fetch/prepare.py) turns a revision into a version: it ends when the next revision of the same article starts. The same script works out 220 expected answers without MariaDB, for the tests.
 3. **Load.** [sql/02_load.sql](sql/02_load.sql) is five `LOAD DATA` statements. `system_versioning_insert_history = 1` lets the load write the real dates into `row_start` and `row_end`.
 4. **Use.** The page, [13 queries](sql/queries.sql), [6 examples](sql/examples) and the measurements all read the same tables.
 
-What happens when you pick a date on the page:
+What happens when you pick a date on the page, as a UML sequence diagram:
 
-```mermaid
-sequenceDiagram
-    actor You
-    participant Page as The page (Python)
-    participant DB as MariaDB 12.3.3
-    participant Wiki as Wikipedia
-    You->>Page: Rabat on 1 January 2010
-    Page->>DB: SELECT ... FOR SYSTEM_TIME AS OF '2010-01-01 23:59:59.999999'
-    DB-->>Page: revision 331806877, by SieBot, 16,676 bytes
-    Page->>DB: ANALYZE the same query
-    DB-->>Page: 1,432 rows read, 18 of 27 partitions opened
-    opt the text of that revision is not stored yet
-        Page->>Wiki: text of revision 331806877
-        Wiki-->>Page: wikitext
-        Page->>DB: keep it in exact_text
-    end
-    Page-->>You: the article as it stood, and how MariaDB found it
-```
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="design/uml/request-dark.svg">
+  <img src="design/uml/request-light.svg" alt="UML sequence diagram: you pick Rabat and 1 January 2010; the page asks MariaDB with AS OF, then EXPLAIN and ANALYZE; if the stored text is older it looks in exact_text, and if the exact text is not kept yet it asks Wikipedia and keeps it; then it shows the article" width="900">
+</picture>
+</p>
 
 ## Data model
 
-A UML class diagram, drawn in the notation of the Software Construction course at Constructor University (Dr. Aguado, chapter 10, structural models). Each class is a table.
+A UML class diagram. Each class is a table.
 
 <p align="center">
 <picture>
@@ -181,7 +155,7 @@ An object diagram is a snapshot of the objects at one moment. This one is the mo
 </picture>
 </p>
 
-`article` has 45 current rows and 31,179 versions in all. The associations are links by id: a partitioned table cannot have foreign keys, so a test checks that every pointer lands. Both diagrams are drawn by [design/draw_uml.py](design/draw_uml.py). The reasons behind the main choices:
+`article` has 45 current rows and 31,179 versions in all. The associations are links by id: a partitioned table cannot have foreign keys, so a test checks that every pointer lands. The UML diagrams are drawn by [design/draw_uml.py](design/draw_uml.py), the other pictures by [design/draw_charts.py](design/draw_charts.py). The reasons behind the main choices:
 
 | Choice | Reason |
 |---|---|
@@ -223,22 +197,14 @@ To click through them instead, open [docs/findings/explorer.html](docs/findings/
 
 ## The weak spot: old dates
 
-```mermaid
----
-config:
-  xyChart:
-    width: 640
-    height: 300
----
-xychart-beta
-    title "Rows read to give one answer about Rabat"
-    x-axis "Date asked about" ["June 2005", "June 2010", "June 2026"]
-    y-axis "Rows read" 0 --> 2000
-    bar [1845, 1385, 60]
-    line [1, 1, 1]
-```
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="design/charts/old-dates-dark.svg">
+  <img src="design/charts/old-dates-light.svg" alt="Rows read to give one answer about Rabat: AS OF reads 1,845 rows for June 2005, 1,385 for June 2010 and 60 for June 2026; the first-row query reads 1 each time" width="900">
+</picture>
+</p>
 
-The bars are `AS OF`: 1,845, 1,385 and 60 rows. The line at the bottom is the first-row query: 1 row every time.
+`AS OF` reads 1,845, 1,385 and 60 rows. The first-row query reads 1 row every time.
 
 - **Why.** The key of a versioned table is `(page_id, row_end)`. `AS OF` reads every version that ended after the date, then keeps one. Ask about 2005 and nearly every version ended after it.
 - **What MariaDB said.** I asked at the meeting on 5 November 2026. The feature is designed to start recording on the day it is switched on, and such a table is mostly asked about recent dates.
@@ -299,7 +265,7 @@ tests/       40 database checks, 62 Python tests
 results/     the output of every query, example, test and measurement
 data/        the list of articles, the fixed date, a sample of three articles
 docs/        the pages in the table above
-design/      logo, icons, UML diagrams, screenshots, and the two small scripts that draw them
+design/      logo, icons, UML diagrams, charts, screenshots, and the small scripts that draw them
 ```
 </details>
 

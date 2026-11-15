@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1010 572" width="1010" height="572" font-family="Arial, Helvetica, 'Liberation Sans', sans-serif" role="img"><title>UML sequence diagram: what the page asks MariaDB and Wikipedia when you pick Rabat and 1 January 2010</title>
+<circle cx="60" cy="17" r="7" fill="none" stroke="#c9d1d9" stroke-width="1.4"/>
+<path d="M60 24 V40 M49 30 H71 M60 40 L51 52 M60 40 L69 52" fill="none" stroke="#c9d1d9" stroke-width="1.4"/>
+<text x="60" y="70" font-size="12" text-anchor="middle" fill="#e6edf3" style="">You</text>
+<rect x="185.0" y="22" width="170" height="30" fill="#2d333b" stroke="#9aa4af" stroke-width="1.2"/>
+<text x="270.0" y="42" font-size="13.5" text-anchor="middle" fill="#e6edf3" style="font-weight:bold;">page: Python server</text>
+<rect x="615.0" y="22" width="150" height="30" fill="#2d333b" stroke="#9aa4af" stroke-width="1.2"/>
+<text x="690.0" y="42" font-size="13.5" text-anchor="middle" fill="#e6edf3" style="font-weight:bold;">MariaDB 12.3.3</text>
+<rect x="860.0" y="22" width="120" height="30" fill="#2d333b" stroke="#9aa4af" stroke-width="1.2"/>
+<text x="920.0" y="42" font-size="13.5" text-anchor="middle" fill="#e6edf3" style="font-weight:bold;">Wikipedia</text>
+<polyline points="60,80 60,560" fill="none" stroke="#c9d1d9" stroke-width="1.2" stroke-dasharray="5,4"/>
+<polyline points="270,52 270,560" fill="none" stroke="#c9d1d9" stroke-width="1.2" stroke-dasharray="5,4"/>
+<polyline points="690,52 690,560" fill="none" stroke="#c9d1d9" stroke-width="1.2" stroke-dasharray="5,4"/>
+<polyline points="920,52 920,560" fill="none" stroke="#c9d1d9" stroke-width="1.2" stroke-dasharray="5,4"/>
+<rect x="265" y="100" width="10" height="434" fill="#2d333b" stroke="#9aa4af" stroke-width="1.2"/>
+<rect x="685" y="128" width="10" height="34" fill="#2d333b" stroke="#9aa4af" stroke-width="1.2"/>
+<rect x="685" y="196" width="10" height="34" fill="#2d333b" stroke="#9aa4af" stroke-width="1.2"/>
+<rect x="685" y="300" width="10" height="34" fill="#2d333b" stroke="#9aa4af" stroke-width="1.2"/>
+<rect x="685" y="454" width="10" height="16" fill="#2d333b" stroke="#9aa4af" stroke-width="1.2"/>
+<rect x="915" y="394" width="10" height="34" fill="#2d333b" stroke="#9aa4af" stroke-width="1.2"/>
+<rect x="150" y="254" width="840" height="236" fill="none" stroke="#9aa4af" stroke-width="1.2"/>
+<polygon points="150,254 194,254 194,266 186,274 150,274" fill="#2d333b" stroke="#9aa4af" stroke-width="1.2"/>
+<text x="158" y="269" font-size="12" text-anchor="start" fill="#e6edf3" style="font-weight:bold;">opt</text>
+<text x="285" y="269" font-size="12" text-anchor="start" fill="#e6edf3" style="">[the stored text belongs to an older revision]</text>
+<rect x="170" y="346" width="800" height="132" fill="none" stroke="#9aa4af" stroke-width="1.2"/>
+<polygon points="170,346 214,346 214,358 206,366 170,366" fill="#2d333b" stroke="#9aa4af" stroke-width="1.2"/>
+<text x="178" y="361" font-size="12" text-anchor="start" fill="#e6edf3" style="font-weight:bold;">opt</text>
+<text x="285" y="361" font-size="12" text-anchor="start" fill="#e6edf3" style="">[the exact text is not kept yet]</text>
+<polyline points="60,100 265,100" fill="none" stroke="#c9d1d9" stroke-width="1.2"/>
+<polygon points="265,100 254,95 254,105" fill="#c9d1d9"/>
+<text x="70" y="93" font-size="12" text-anchor="start" fill="#e6edf3" style="">Rabat, 1 January 2010</text>
+<polyline points="275,128 685,128" fill="none" stroke="#c9d1d9" stroke-width="1.2"/>
+<polygon points="685,128 674,123 674,133" fill="#c9d1d9"/>
+<text x="285" y="121" font-size="12" text-anchor="start" fill="#e6edf3" style="">SELECT ... FOR SYSTEM_TIME AS OF '2010-01-01 23:59:59.999999'</text>
+<polyline points="685,162 275,162" fill="none" stroke="#c9d1d9" stroke-width="1.2" stroke-dasharray="5,4"/>
+<polyline points="286,157 275,162 286,167" fill="none" stroke="#c9d1d9" stroke-width="1.2"/>
+<text x="285" y="155" font-size="12" text-anchor="start" fill="#e6edf3" style="">revision 331806877, SieBot, 16,676 bytes, and its stored text</text>
+<polyline points="275,196 685,196" fill="none" stroke="#c9d1d9" stroke-width="1.2"/>
+<polygon points="685,196 674,191 674,201" fill="#c9d1d9"/>
+<text x="285" y="189" font-size="12" text-anchor="start" fill="#e6edf3" style="">EXPLAIN PARTITIONS and ANALYZE of the same query</text>
+<polyline points="685,230 275,230" fill="none" stroke="#c9d1d9" stroke-width="1.2" stroke-dasharray="5,4"/>
+<polyline points="286,225 275,230 286,235" fill="none" stroke="#c9d1d9" stroke-width="1.2"/>
+<text x="285" y="223" font-size="12" text-anchor="start" fill="#e6edf3" style="">18 of 27 partitions opened, 1,432 rows read</text>
+<polyline points="275,300 685,300" fill="none" stroke="#c9d1d9" stroke-width="1.2"/>
+<polygon points="685,300 674,295 674,305" fill="#c9d1d9"/>
+<text x="285" y="293" font-size="12" text-anchor="start" fill="#e6edf3" style="">SELECT body FROM exact_text WHERE rev_id = 331806877</text>
+<polyline points="685,334 275,334" fill="none" stroke="#c9d1d9" stroke-width="1.2" stroke-dasharray="5,4"/>
+<polyline points="286,329 275,334 286,339" fill="none" stroke="#c9d1d9" stroke-width="1.2"/>
+<text x="285" y="327" font-size="12" text-anchor="start" fill="#e6edf3" style="">the exact text, or nothing</text>
+<polyline points="275,394 915,394" fill="none" stroke="#c9d1d9" stroke-width="1.2"/>
+<polygon points="915,394 904,389 904,399" fill="#c9d1d9"/>
+<text x="285" y="387" font-size="12" text-anchor="start" fill="#e6edf3" style="">the text of revision 331806877</text>
+<polyline points="915,428 275,428" fill="none" stroke="#c9d1d9" stroke-width="1.2" stroke-dasharray="5,4"/>
+<polyline points="286,423 275,428 286,433" fill="none" stroke="#c9d1d9" stroke-width="1.2"/>
+<text x="285" y="421" font-size="12" text-anchor="start" fill="#e6edf3" style="">wikitext</text>
+<polyline points="275,454 685,454" fill="none" stroke="#c9d1d9" stroke-width="1.2"/>
+<polygon points="685,454 674,449 674,459" fill="#c9d1d9"/>
+<text x="285" y="447" font-size="12" text-anchor="start" fill="#e6edf3" style="">INSERT IGNORE INTO exact_text</text>
+<polyline points="265,534 60,534" fill="none" stroke="#c9d1d9" stroke-width="1.2" stroke-dasharray="5,4"/>
+<polyline points="71,529 60,534 71,539" fill="none" stroke="#c9d1d9" stroke-width="1.2"/>
+<text x="70" y="527" font-size="12" text-anchor="start" fill="#e6edf3" style="">and how MariaDB found it</text>
+<text x="70" y="512" font-size="12" text-anchor="start" fill="#e6edf3" style="">the article as it stood,</text>
+</svg>

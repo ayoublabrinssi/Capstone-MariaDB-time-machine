@@ -1,8 +1,9 @@
-"""Draws the two UML diagrams of the data model shown in the README.
+"""Draws the three UML diagrams shown in the README.
 
-The notation is the one of the UML chapter of the Software Construction course:
-grey class boxes with name, attributes and operations, visibility (+ and -),
-derived attributes (/), multiplicities, roles, composition, and an object diagram.
+A class diagram of the data model, an object diagram of one moment, and a
+sequence diagram of what the page does when you pick a date. Standard UML:
+visibility (+ and -), derived attributes (/), multiplicities, roles,
+composition, lifelines, calls and replies, opt fragments.
 Run it again after a schema change:  python3 design/draw_uml.py
 It writes a light and a dark SVG of each diagram into design/uml/.
 """
@@ -75,6 +76,34 @@ class Svg:
         a = (x - dx * 11 + px * 5, y - dy * 11 + py * 5)
         b = (x - dx * 11 - px * 5, y - dy * 11 - py * 5)
         self.add('<polyline points="%s,%s %s,%s %s,%s" fill="none" stroke="%s" stroke-width="1.2"/>' % (a[0], a[1], x, y, b[0], b[1], self.t['line']))
+    def call(self, x1, x2, y, label, reply=False):
+        """A message between two lifelines. A call is a solid line with a filled head,
+        a reply a dashed line with an open head. The label sits above the line."""
+        self.line([(x1, y), (x2, y)], dashed=reply)
+        d = 1 if x2 > x1 else -1
+        if reply:
+            self.arrow(x2, y, 'right' if d > 0 else 'left')
+        else:
+            self.add('<polygon points="%s,%s %s,%s %s,%s" fill="%s"/>'
+                     % (x2, y, x2 - d * 11, y - 5, x2 - d * 11, y + 5, self.t['line']))
+        left = min(x1, x2)
+        for i, part in enumerate(reversed(label.split('\n'))):
+            self.text(left + 10, y - 7 - i * 15, part, size=12)
+    def fragment(self, x, y, w, h, kind, guard, gx=None):
+        """A combined fragment (opt, alt, loop) with its pentagon tag and guard."""
+        t = self.t
+        self.add('<rect x="%s" y="%s" width="%s" height="%s" fill="none" stroke="%s" stroke-width="1.2"/>' % (x, y, w, h, t['stroke']))
+        tw = 44
+        self.add('<polygon points="%s,%s %s,%s %s,%s %s,%s %s,%s" fill="%s" stroke="%s" stroke-width="1.2"/>'
+                 % (x, y, x + tw, y, x + tw, y + 12, x + tw - 8, y + 20, x, y + 20, t['fill'], t['stroke']))
+        self.text(x + 8, y + 15, kind, size=12, bold=True)
+        self.text(gx or x + tw + 10, y + 15, guard, size=12)
+    def actor(self, x, y):
+        """A stick figure, head top at y."""
+        c = self.t['line']
+        self.add('<circle cx="%s" cy="%s" r="7" fill="none" stroke="%s" stroke-width="1.4"/>' % (x, y + 7, c))
+        self.add('<path d="M%s %s V%s M%s %s H%s M%s %s L%s %s M%s %s L%s %s" fill="none" stroke="%s" stroke-width="1.4"/>'
+                 % (x, y + 14, y + 30, x - 11, y + 20, x + 11, x, y + 30, x - 9, y + 42, x, y + 30, x + 9, y + 42, c))
     def reading(self, x, y):
         """Small filled triangle: the reading direction of an association name."""
         self.add('<polygon points="%s,%s %s,%s %s,%s" fill="%s"/>' % (x, y - 8, x + 7, y - 4, x, y, self.t['text']))
@@ -138,7 +167,45 @@ def object_diagram(theme):
     s.box(740, 112, 254, ':ExactText', ['rev_id = 331806877'], obj=True)
     return s
 
-for theme in THEMES:
-    class_diagram(theme).save(os.path.join(HERE, 'data-model-%s.svg' % theme))
-    object_diagram(theme).save(os.path.join(HERE, 'snapshot-%s.svg' % theme))
-print('wrote 4 files in', HERE)
+def sequence_diagram(theme):
+    """What happens when you pick Rabat and 1 January 2010 (app/server.py, app/db.py, app/exact.py)."""
+    s = Svg(1010, 572, theme, 'UML sequence diagram: what the page asks MariaDB and Wikipedia when you pick Rabat and 1 January 2010')
+    YOU, PAGE, DB, WIKI = 60, 270, 690, 920
+    END = 560
+    # lifeline heads
+    s.actor(YOU, 10); s.text(YOU, 70, 'You', anchor='middle')
+    for x, name, w in ((PAGE, 'page: Python server', 170), (DB, 'MariaDB 12.3.3', 150), (WIKI, 'Wikipedia', 120)):
+        s.box(x - w / 2, 22, w, name)
+    # lifelines
+    for x, top in ((YOU, 80), (PAGE, 52), (DB, 52), (WIKI, 52)):
+        s.line([(x, top), (x, END)], dashed=True)
+    # activation bars, drawn before the messages
+    t = s.t
+    def bar(x, y1, y2):
+        s.add('<rect x="%s" y="%s" width="10" height="%s" fill="%s" stroke="%s" stroke-width="1.2"/>' % (x - 5, y1, y2 - y1, t['fill'], t['stroke']))
+    bar(PAGE, 100, 534)
+    bar(DB, 128, 162); bar(DB, 196, 230); bar(DB, 300, 334); bar(DB, 454, 470)
+    bar(WIKI, 394, 428)
+    # fragments
+    s.fragment(150, 254, 840, 236, 'opt', '[the stored text belongs to an older revision]', gx=PAGE + 15)
+    s.fragment(170, 346, 800, 132, 'opt', '[the exact text is not kept yet]', gx=PAGE + 15)
+    # messages
+    s.call(YOU, PAGE - 5, 100, 'Rabat, 1 January 2010')
+    s.call(PAGE + 5, DB - 5, 128, "SELECT ... FOR SYSTEM_TIME AS OF '2010-01-01 23:59:59.999999'")
+    s.call(DB - 5, PAGE + 5, 162, 'revision 331806877, SieBot, 16,676 bytes, and its stored text', reply=True)
+    s.call(PAGE + 5, DB - 5, 196, 'EXPLAIN PARTITIONS and ANALYZE of the same query')
+    s.call(DB - 5, PAGE + 5, 230, '18 of 27 partitions opened, 1,432 rows read', reply=True)
+    s.call(PAGE + 5, DB - 5, 300, 'SELECT body FROM exact_text WHERE rev_id = 331806877')
+    s.call(DB - 5, PAGE + 5, 334, 'the exact text, or nothing', reply=True)
+    s.call(PAGE + 5, WIKI - 5, 394, 'the text of revision 331806877')
+    s.call(WIKI - 5, PAGE + 5, 428, 'wikitext', reply=True)
+    s.call(PAGE + 5, DB - 5, 454, 'INSERT IGNORE INTO exact_text')
+    s.call(PAGE - 5, YOU, 534, 'the article as it stood,\nand how MariaDB found it', reply=True)
+    return s
+
+if __name__ == '__main__':
+    for theme in THEMES:
+        class_diagram(theme).save(os.path.join(HERE, 'data-model-%s.svg' % theme))
+        object_diagram(theme).save(os.path.join(HERE, 'snapshot-%s.svg' % theme))
+        sequence_diagram(theme).save(os.path.join(HERE, 'request-%s.svg' % theme))
+    print('wrote 6 files in', HERE)

@@ -331,6 +331,7 @@ app/                  the time machine page: server.py, db.py, exact.py, views.p
                       app.js, style.css, logo.svg
 docs/                 findings/ (one page per finding, explorer.html), measurements.md,
                       import-tutorial.md, contributions.md, details.md, AI-log.md, SELF-ASSESSMENT.md
-design/               logo/, icons/, uml/, screenshots/; draw_uml.py and make_icons.mjs redraw them
+design/               logo/, icons/, uml/, charts/, screenshots/; draw_uml.py, draw_charts.py
+                      and make_icons.mjs redraw them
 .github/workflows/    ci.yml: lint, tests and a full run from a fresh clone
 ```
