@@ -341,7 +341,7 @@ def render_hood(v, page_id, day, compare, parts, store):
       <dt><code>revision_text</code></dt><dd>about {(tables.get("revision_text", {}).get("approx_rows") or 0):,} texts, {mb("revision_text")}<span>one per article per quarter</span></dd>
       <dt><code>exact_text</code></dt><dd>{store.get("exact_texts", 0):,} texts, {mb("exact_text")}<span>exact revisions fetched when first opened</span></dd>
       <dt><code>article_period</code></dt><dd>about {(tables.get("article_period", {}).get("approx_rows") or 0):,} rows, {mb("article_period")}<span>application time plus its own system time</span></dd>
-      <dt>Server</dt><dd>MariaDB {esc(store["version"].split("-")[0])}<span>session in UTC, read only, as a user that may only read</span></dd>
+      <dt>Server</dt><dd>MariaDB {esc(store["version"].split("-")[0])}<span>session in UTC, read only, as a user that may only read and add to the text cache</span></dd>
     </dl>
   </section>
 </aside>"""

@@ -56,7 +56,7 @@ warning  Moved 3 misplaced rows
 status   OK
 ```
 
-After the repair each version is in the partition of the year it ended, and 2018 gives 14.00 again. `ALTER TABLE ... REBUILD PARTITION p0` does not help: it fails with error 1863.
+After the repair each version is in the partition of the year it ended, and 2018 gives 14.00 again. `ALTER TABLE ... REBUILD PARTITION p0` does not help: it failed with error 1863 when I tried it by hand (that statement is not in the script).
 
 ## How we found it
 

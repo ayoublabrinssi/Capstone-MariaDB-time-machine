@@ -3,7 +3,7 @@
 #   1. fetch/prepare.py   data/raw/*.json  ->  data/load/*.tsv
 #   2. sql/01_schema.sql  drops and creates the tables
 #   3. sql/02_load.sql    loads the files with their real timestamps
-#   4. the page's own database user, which may only read
+#   4. the page's own database user, which may only read and add to the text cache
 # Run scripts/fetch.sh first, or use the three articles that come with the
 # repository:
 #   scripts/install.sh            all 45 articles from data/raw/

@@ -50,7 +50,7 @@ WHERE vehicle = 'TRK-12' AND valid_from <= '2026-03-12' AND valid_to > '2026-03-
 
 -- A second driver on the same truck at the same time is refused with
 -- error 1062. The message names the period end before the start
--- ('TRK-12-2026-03-25-2026-03-20'), which is easy to misread; see the README.
+-- ('TRK-12-2026-03-25-2026-03-20'), which is easy to misread; see docs/findings/07-smaller-things.md.
 DELIMITER //
 BEGIN NOT ATOMIC
   DECLARE EXIT HANDLER FOR SQLEXCEPTION

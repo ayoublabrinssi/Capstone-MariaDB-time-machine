@@ -21,7 +21,7 @@ From [sql/examples/retention.sql](../../sql/examples/retention.sql), on a copy o
 | `OPTIMIZE TABLE` | 23,670 | 4,352 KB |
 | `SET system_versioning_alter_history = KEEP`, then `OPTIMIZE TABLE` | 23,670 | 3,504 KB |
 
-7,432 versions were deleted and the size did not move. Here is what `OPTIMIZE` answered the first time:
+7,432 versions were deleted and the size did not move. (The example starts at 31,102 versions, not 31,179, because it first drops the three oldest partitions, 77 versions, to show the other way of forgetting.) Here is what `OPTIMIZE` answered the first time:
 
 ```
 OPTIMIZE TABLE article_copy;

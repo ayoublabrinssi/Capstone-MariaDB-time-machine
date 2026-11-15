@@ -1,6 +1,6 @@
 -- Tests for the time machine. Run with scripts/test.sh after scripts/install.sh.
 -- Each check prints "ok" or "not ok", one line each.
--- A check is known by its number in that output (ok 1 to ok 40), here and in the README.
+-- A check is known by its number in that output (ok 1 to ok 40), here and in the docs.
 -- The AS OF checks come from data/load/expected_as_of.tsv, which fetch/prepare.py
 -- computes in Python from the raw JSON, without MariaDB.
 USE timemachine;

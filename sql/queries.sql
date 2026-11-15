@@ -60,7 +60,7 @@ SELECT @edit AS range_ends_at_this_edit,
 
 
 -- 5. FOR SYSTEM_TIME ALL: the full history as a time series.
---    Edits per year on Rabat, with the size at the end of each year.
+--    Edits per year on Rabat, with the largest size reached that year.
 SELECT YEAR(a.row_start) AS year, COUNT(*) AS edits, MAX(a.bytes) AS largest_bytes
 FROM article FOR SYSTEM_TIME ALL a JOIN page p USING (page_id)
 WHERE p.title = 'Rabat'
@@ -105,7 +105,7 @@ WHERE TABLE_SCHEMA = 'timemachine' AND TABLE_NAME = 'article';
 
 --    Pruning: a query on a recent moment reads only the newest partitions.
 --    A query on an old moment cannot skip the newer ones, because a version
---    that ENDED in 2020 may have STARTED before 2005. See the README.
+--    that ENDED in 2020 may have STARTED before 2005. See docs/details.md.
 EXPLAIN PARTITIONS SELECT rev_id FROM article FOR SYSTEM_TIME AS OF TIMESTAMP '2026-06-01 00:00:00';
 EXPLAIN PARTITIONS SELECT rev_id FROM article FOR SYSTEM_TIME AS OF TIMESTAMP '2005-06-01 00:00:00';
 

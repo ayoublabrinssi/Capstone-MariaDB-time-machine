@@ -62,11 +62,11 @@ Both return the same revision for all 220 test moments (check 22 in [tests/tests
 
 ## How we found it
 
-The page of this project shows, next to every answer, how many rows MariaDB read to find it (`ANALYZE FORMAT=JSON`). Old dates read far more than recent ones. I asked MariaDB why at the meeting on 5 November 2026. Their answer: system versioning is designed to record from today forward, so it is tuned for recent dates. The project then measured three ways around it, and the first-row query won. The [README](../../README.md#the-old-date-problem) has the full comparison.
+The page of this project shows, next to every answer, how many rows MariaDB read to find it (`ANALYZE FORMAT=JSON`). Old dates read far more than recent ones. I asked MariaDB why at the meeting on 5 November 2026. Their answer: system versioning is designed to record from today forward, so it is tuned for recent dates. The project then measured three ways around it, and the first-row query won. The full comparison is in [measurements.md](../measurements.md#4-old-dates-three-ways-to-read-fewer-rows), section 4.
 
 ## Why it matters
 
-On 45 articles it costs a few milliseconds. On a long history it is the difference between usable and not:
+On 45 articles it costs little. Inside the server, Rabat's old date goes from 2.0 ms to 0.08 ms, while the round trip from the page is about 1.4 ms either way. The longest history here is Casablanca, 4,039 versions, of which `AS OF` 1 January 2005 reads 3,975 (query 13). On a longer history it is the difference between usable and not:
 
 | Versions of one key | `AS OF`, 10% into the history | First-row query |
 |---|---|---|
@@ -79,6 +79,11 @@ A second index on `row_start` does not save it. For the million-version key the 
 ## What works
 
 - **Use the first-row query** when you ask about one key at one moment. No index, no schema change. The page uses it ("A shorter way" in the side panel), and so does query 13 in [sql/queries.sql](../../sql/queries.sql).
+
+  <img src="../../design/screenshots/page-shorter.png" alt="The panel of the page asking the same moment the shorter way: same revision, 1 row read where AS OF read 1,844" width="420">
+
+  The page asks about the end of the day and the measurements about midnight at its start, so for 1 June 2005 the page says 1,844 where the tables here say 1,845.
+
 - **Make sure versions never overlap**, because the shortcut is only right then. Check 21 tests it for every article, since the server does not check imported history ([finding 6](06-imported-versions-can-overlap.md)).
 
 ## What we suggest to MariaDB

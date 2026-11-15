@@ -16,6 +16,7 @@ When the code changes, this log is updated so it still matches. New entries go a
 - **MariaDB.** I presented the project to MariaDB in November and asked two questions: why the table is sorted by the end date, which makes an old date slow, and why I needed my own columns to keep the real dates. I brought back their answer: system versioning is designed to record from the day it is switched on, not to import past history. The last part of the project is built on that answer.
 - **The final round.** I asked to take the project further from MariaDB's answer: find the problems, fix each one and test it. I asked to check the project with MariaDB's evaluation prompt and to fix what it found.
 - **The findings.** I asked for the findings to be written so that someone who is not technical can follow them, and sent back the explanations that were not clear until they were.
+- **The README.** I found the README too long to follow. I asked for a short one that gives the idea first, with diagrams and screenshots of one size, and the details on a page of their own. I gave the UML chapter of my Software Construction course and asked for the data model to be drawn in that notation.
 - **Checking.** I check the files and the results before each commit, and I commit and push every change myself.
 
 ## Where the AI helped
@@ -36,6 +37,9 @@ When the code changes, this log is updated so it still matches. New entries go a
 | 6 | 2026-11-03 | measurements, session time travel, retention, edit wars | picked the four features (measurements, time travel for a whole session, retention, an edit-war detector) and their order; ran the measurements on my Mac and chose to keep the partitions although they slow the single-article query; checked the result before the commit | drafted `scripts/measure.py`, `scripts/measure.sh`, `docs/measurements.md`, `sql/examples/retention.sql`, the session cross-check and the "Edit wars" list in the page, queries 11 and 12, five database checks and two page tests, and the README update |
 | 7 | 2026-11-13 | the old-date fix, limits, import tutorial, notes for MariaDB, CI | brought the question and MariaDB's answer from the meeting; asked to take the project further from it: the problems found, the fix for each, and what we do about them, all tested; asked to check the result with MariaDB's evaluation prompt, twice, and to fix what it found each time; checked the changes and the results before the commit | drafted section 4 of `scripts/measure.py` and `docs/measurements.md`, the "A shorter way" part of the page, query 13, `sql/examples/limits.sql`, `sql/examples/import_history.sql`, `sql/examples/live_edit.sql`, `scripts/backup_check.sh`, `scripts/trust_check.sh`, `scripts/text_cost.py`, `scripts/growth.py`, `docs/import-tutorial.md`, `docs/contributions.md` and `.github/workflows/ci.yml`; the exact text of a revision (`app/exact.py`), the page code split into `app/db.py`, `app/views.py` and `app/server.py`, a read-only database user for the page (`scripts/page_user.sh`), the sample in `data/sample/`; corrections to wrong numbers in the README and `docs/measurements.md`; twenty database checks, sixteen page tests and the sixteen tests of `tests/test_fetch.py`; ran the evaluation prompt and the tests |
 | 8 | 2026-11-14 | the findings, written for everyone | asked for the findings and what MariaDB can use from them to be explained in the README and in a folder of their own, easy to follow for someone who is not technical, with interactive figures; sent back the first explanations of the clock and old-date findings because they were not clear, and asked for a step-by-step story with a concrete example instead; checked the pages before the commit | drafted `docs/findings/` (an index, seven pages and `explorer.html`), the "What we found" section of the README and the shorter `docs/contributions.md` |
+| 9 | 2026-11-14 | a shorter README with diagrams | read the README on GitHub and found it too long to follow; asked for the idea first and the details on linked pages, for diagrams that GitHub draws (graphs, UML) and icons in place of long text, and for screenshots of one size; checked the pages before the commit | redrafted `README.md` around five diagrams, moved the long sections as they were into `docs/details.md`, and took the screenshots again in light and dark |
+| 10 | 2026-11-14 | the data model as UML, in the course notation | gave the slides of the UML chapter of my Software Construction course (Dr. Aguado) and asked for the data model to be redrawn in that notation, so the project applies what the course teaches; checked the diagrams before the commit | drew the class diagram and the object diagram with a small script (`design/draw_uml.py`) and put them in the README in place of the ER diagram |
+| 11 | 2026-11-15 | icons | chose the Kubai Icons set and asked for the emojis in the README to be replaced by its icons, in the colours of the page | made the icons in those colours with a small script (`design/make_icons.mjs`) and put them in place of the emojis in `README.md` and `docs/details.md` |
 
 ## Prompts
 
@@ -102,3 +106,15 @@ A to D were the four features in the title, in that order.
 Before this, on the findings explained one by one:
 
 > Explain this more. That graph is not showing anything. Explain how the versions overlap, why this is a problem, what it means, and whether there is a way to fix it.
+
+### 9. A shorter README with diagrams (14 Nov 2026)
+
+> The README is way too long, with many details that are not needed. I want it to the point: the idea first, then the details. Make it look good, easy to understand and easy to follow, without folders inside folders. Use icons and visuals, not just words: diagrams that render in the Markdown file, some graphs, some UML. Some of the screenshots are not the same size ...
+
+### 10. The data model as UML, in the course notation (14 Nov 2026)
+
+> The data model diagram is good. I want it to be related to the Software Construction course I study at Constructor, with the same professor, so the project applies what I learn there. Here are the slides: read them, see how UML is drawn in them, and redraw the diagrams in that style.
+
+### 11. Icons (15 Nov 2026)
+
+> Replace the emoji icons with icons generated with Kubai Icons, and use our colour palette.

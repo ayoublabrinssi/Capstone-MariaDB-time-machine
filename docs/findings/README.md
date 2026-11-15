@@ -1,5 +1,7 @@
 # What we found
 
+[← Back to the README](../../README.md)
+
 Loading 25 years of real Wikipedia history into a system-versioned table pushed the feature past the case it was built for. System versioning is designed to record from today forward. Here it had to take a past that already happened. Along the way MariaDB 12.3.3 did a few things that surprised me. This folder explains each one in plain words, with a small example, the exact answer the server gave, and what works around it.
 
 Every finding has a file in this repository that reproduces it. You can check each claim yourself in a minute.
@@ -10,13 +12,13 @@ Every finding has a file in this repository that reproduces it. You can check ea
 
 | | Finding | In one sentence | Kind |
 |---|---|---|---|
-| 1 | [A past date stops answering after an import](01-auto-partitions-lose-imported-history.md) | With `AUTO` partitions, imported history all lands in the first partition, and after the first live change `AS OF` stops looking there. | may be a bug |
-| 2 | [Setting the clock back loses a version](02-clock-set-back-loses-a-version.md) | An `UPDATE` stamped before the current version started is accepted, the current version disappears, and some dates get two answers. | may be a bug |
-| 3 | [An old date reads almost the whole history](03-old-dates-read-the-whole-history.md) | `AS OF` 2005 reads 1,845 of Rabat's 1,878 versions to return one, while a query that stops at the first match reads 1. | idea for the optimizer |
-| 4 | [`OPTIMIZE TABLE` fails but says it worked](04-optimize-says-it-worked.md) | After `DELETE HISTORY` the space only comes back with a rebuild, and `OPTIMIZE` refuses the rebuild without raising an error. | may be a bug |
-| 5 | [Anyone who can write can write the past](05-anyone-can-write-the-past.md) | On a default server, a user with only `INSERT` and `UPDATE` can add a version dated 2015 or 2030. | documentation |
-| 6 | [Imported versions can overlap](06-imported-versions-can-overlap.md) | The server checks that an imported version ends after it starts, but not that it does not overlap another one. | documentation |
-| 7 | [Smaller things worth knowing](07-smaller-things.md) | The 1970 floor, a confusing error message, backups that drop the history, and two more. | documentation |
+| 1 | [A past date stops answering after an import](01-auto-partitions-lose-imported-history.md) | With `AUTO` partitions, imported history all lands in the first partition, and after the first live change `AS OF` stops looking there. | <img src="../../design/icons/bug.svg" width="24" height="24" alt="" align="absmiddle"> may be a bug |
+| 2 | [Setting the clock back loses a version](02-clock-set-back-loses-a-version.md) | An `UPDATE` stamped before the current version started is accepted, the current version disappears, and some dates get two answers. | <img src="../../design/icons/bug.svg" width="24" height="24" alt="" align="absmiddle"> may be a bug |
+| 3 | [An old date reads almost the whole history](03-old-dates-read-the-whole-history.md) | `AS OF` 2005 reads 1,845 of Rabat's 1,878 versions to return one, while a query that stops at the first match reads 1. | <img src="../../design/icons/lightbulb.svg" width="24" height="24" alt="" align="absmiddle"> idea for the optimizer |
+| 4 | [`OPTIMIZE TABLE` fails but says it worked](04-optimize-says-it-worked.md) | After `DELETE HISTORY` the space only comes back with a rebuild, and `OPTIMIZE` refuses the rebuild without raising an error. | <img src="../../design/icons/bug.svg" width="24" height="24" alt="" align="absmiddle"> may be a bug |
+| 5 | [Anyone who can write can write the past](05-anyone-can-write-the-past.md) | On a default server, a user with only `INSERT` and `UPDATE` can add a version dated 2015 or 2030. | <img src="../../design/icons/book-open.svg" width="24" height="24" alt="" align="absmiddle"> documentation |
+| 6 | [Imported versions can overlap](06-imported-versions-can-overlap.md) | The server checks that an imported version ends after it starts, but not that it does not overlap another one. | <img src="../../design/icons/book-open.svg" width="24" height="24" alt="" align="absmiddle"> documentation |
+| 7 | [Smaller things worth knowing](07-smaller-things.md) | The 1970 floor, a confusing error message, backups that drop the history, and two more. | <img src="../../design/icons/book-open.svg" width="24" height="24" alt="" align="absmiddle"> documentation |
 
 "May be a bug" means the server does something that loses or hides data without an error. It may be intended, but then the documentation should say so. None of these is filed with MariaDB yet; [contributions.md](../contributions.md) tracks what goes where.
 

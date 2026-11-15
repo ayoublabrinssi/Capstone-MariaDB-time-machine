@@ -1,6 +1,6 @@
 -- Schema for the Wikipedia time machine. Developed on MariaDB 12.3.3.
 --
--- Two clocks, two tables (README, "How time is modelled"):
+-- Two clocks, two tables (docs/details.md, "How time is modelled"):
 --
 --   article         system-versioned. One current row per city. Every older
 --                   revision is a history row whose row_start / row_end are
