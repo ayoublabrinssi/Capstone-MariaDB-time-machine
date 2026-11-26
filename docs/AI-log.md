@@ -17,6 +17,7 @@ When the code changes, this log is updated so it still matches. New entries go a
 - **The final round.** I asked to take the project further from MariaDB's answer: find the problems, fix each one and test it. I asked to check the project with MariaDB's evaluation prompt and to fix what it found.
 - **The findings.** I asked for the findings to be written so that someone who is not technical can follow them, and sent back the explanations that were not clear until they were.
 - **The README.** I found the README too long to follow. I asked for a short one that gives the idea first, with diagrams and screenshots of one size, and the details on a page of their own. I asked for the data model to be drawn in UML, and for the diagrams to be plain pictures that are easy to read at a glance.
+- **Filing with MariaDB.** After MariaDB's feedback I filed two bug reports in their Jira ([MDEV-42485](https://jira.mariadb.org/browse/MDEV-42485), [MDEV-42487](https://jira.mariadb.org/browse/MDEV-42487)) and opened a [pull request](https://github.com/mariadb-corporation/mariadb-docs/pull/1709) to the MariaDB documentation with the import tutorial.
 - **Checking.** I check the files and the results before each commit, and I commit and push every change myself.
 
 ## Where the AI helped
@@ -42,6 +43,7 @@ When the code changes, this log is updated so it still matches. New entries go a
 | 11 | 2026-11-15 | icons | chose the Kubai Icons set and asked for the emojis in the README to be replaced by its icons, in the colours of the page | made the icons in those colours with a small script (`design/make_icons.mjs`) and put them in place of the emojis in `README.md` and `docs/details.md` |
 | 12 | 2026-11-15 | plain diagrams in the README | found the diagrams GitHub draws hard to read, with zoom buttons that take space; asked for plain pictures in the style of the UML diagrams, checked against the code, and for the Rabat graph to read like the timeline of a video editor; checked the pictures before the commit | drew the timeline, the build picture, the old-dates chart (`design/draw_charts.py`) and the request as a UML sequence diagram (`design/draw_uml.py`), and put them in the README in place of the Mermaid diagrams; then the same for `docs/details.md` and findings 2 and 6 |
 | 13 | 2026-11-15 | the start menu | asked for the start script to offer simple choices, with the quick start first; ran it before the commit | made the three-article sample option 1 and the default of `scripts/start.sh`, and updated the README quick start and `docs/details.md` |
+| 14 | 2026-11-26 | filing with MariaDB | brought MariaDB's feedback and its two questions; asked to check their documentation and existing bug reports and to run findings 1, 2 and 4 again on a clean server; filed the two bug reports and opened the documentation pull request myself | searched the documentation and Jira for the same behaviour, ran the three findings again on MariaDB 12.3.3 and 11.8.9, drafted the bug report texts and the documentation page, and corrected two sentences in `docs/import-tutorial.md` that the new run showed to be wrong |
 
 ## Prompts
 
@@ -130,3 +132,7 @@ Before this, on the findings explained one by one:
 ### 13. The start menu (15 Nov 2026)
 
 > When you run the script, it should give you choices: the quick and easy one, the full download of the articles, or help. The user picks option 1 or 2.
+
+### 14. After the MariaDB feedback (26 Nov 2026)
+
+> MariaDB asked two things: are findings 1, 2 and 4 in the documentation or in an existing MDEV, and where does the import tutorial fit in their docs. Check both, run the three findings again on a clean server, and prepare the bug reports and the docs page so I can file them.

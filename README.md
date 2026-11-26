@@ -193,7 +193,7 @@ System versioning is built to record from today forward. Loading a past that alr
 
 <img src="design/icons/bug.svg" width="20" height="20" alt="" align="absmiddle"> may be a bug · <img src="design/icons/lightbulb.svg" width="20" height="20" alt="" align="absmiddle"> idea for the optimizer · <img src="design/icons/book-open.svg" width="20" height="20" alt="" align="absmiddle"> worth a line in the documentation
 
-To click through them instead, open [docs/findings/explorer.html](docs/findings/explorer.html) in a browser. None of them is filed with MariaDB yet; [docs/contributions.md](docs/contributions.md) says where each one goes.
+To click through them instead, open [docs/findings/explorer.html](docs/findings/explorer.html) in a browser. Filed on 26 November 2026: finding 1 is [MDEV-42485](https://jira.mariadb.org/browse/MDEV-42485), finding 2 is [MDEV-42487](https://jira.mariadb.org/browse/MDEV-42487), and the import tutorial and a note for finding 4 are in a [pull request to the MariaDB docs](https://github.com/mariadb-corporation/mariadb-docs/pull/1709). [docs/contributions.md](docs/contributions.md) says where each one goes.
 
 ## The weak spot: old dates
 

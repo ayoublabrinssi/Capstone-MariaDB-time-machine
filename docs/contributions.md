@@ -2,15 +2,15 @@
 
 What goes back to MariaDB, and where. Each finding is explained in plain words, with a small example and the command that reproduces it, in [findings/](findings/README.md). This page is the list for filing. "Docs" means the [System-Versioned Tables](https://mariadb.com/docs/server/reference/sql-structure/temporal-tables/system-versioned-tables) page, read on 13 November 2026.
 
-Status: written up, not filed yet. The questions behind the import tutorial and finding 3 were asked at the meeting with MariaDB on 5 November 2026 (see "What MariaDB said" in the README).
+Status: findings 1 and 2 and the import tutorial were filed on 26 November 2026, after MariaDB's feedback on the project. The rest is written up, not filed yet. The questions behind the import tutorial and finding 3 were asked at the meeting with MariaDB on 5 November 2026 (see "What MariaDB said" in the README).
 
 | What | Goes to | Explained in | Reproduce with |
 |---|---|---|---|
-| A page on loading existing history | documentation (Knowledge Base) | [import-tutorial.md](import-tutorial.md) | [sql/examples/import_history.sql](../sql/examples/import_history.sql) |
-| `AUTO` makes no partitions for imported history, and `AS OF` then loses answers after the first live write | bug report (JIRA), or a docs note under "Automatically Creating Partitions" | [finding 1](findings/01-auto-partitions-lose-imported-history.md) | [sql/examples/limits.sql](../sql/examples/limits.sql), step 9 |
-| One step back with the session clock loses a version, with no error | bug report (JIRA), or a docs note next to `SET @@timestamp` | [finding 2](findings/02-clock-set-back-loses-a-version.md) | [sql/examples/limits.sql](../sql/examples/limits.sql), step 8 |
+| A page on loading existing history | documentation: [mariadb-docs pull request 1709](https://github.com/mariadb-corporation/mariadb-docs/pull/1709) | [import-tutorial.md](import-tutorial.md) | [sql/examples/import_history.sql](../sql/examples/import_history.sql) |
+| `AUTO` makes no partitions for imported history, and `AS OF` then loses answers after the first live write | filed as [MDEV-42485](https://jira.mariadb.org/browse/MDEV-42485), docs note in the pull request | [finding 1](findings/01-auto-partitions-lose-imported-history.md) | [sql/examples/limits.sql](../sql/examples/limits.sql), step 9 |
+| One step back with the session clock loses a version, with no error | filed as [MDEV-42487](https://jira.mariadb.org/browse/MDEV-42487), docs note in the pull request | [finding 2](findings/02-clock-set-back-loses-a-version.md) | [sql/examples/limits.sql](../sql/examples/limits.sql), step 8 |
 | `AS OF` on a full primary key could stop at the first row | optimizer request (JIRA) | [finding 3](findings/03-old-dates-read-the-whole-history.md) | `scripts/measure.sh`, section 4 |
-| `OPTIMIZE TABLE` on a versioned table fails in the result rows but the statement succeeds | bug report (JIRA), or a docs note under "Removing Old History" | [finding 4](findings/04-optimize-says-it-worked.md) | [sql/examples/retention.sql](../sql/examples/retention.sql) |
+| `OPTIMIZE TABLE` on a versioned table fails in the result rows but the statement succeeds | docs note under "Removing Old History", in the pull request | [finding 4](findings/04-optimize-says-it-worked.md) | [sql/examples/retention.sql](../sql/examples/retention.sql) |
 | Who may write a past, and how to lock it after an import | documentation: a "Securing history" section | [finding 5](findings/05-anyone-can-write-the-past.md) | [scripts/trust_check.sh](../scripts/trust_check.sh) |
 | Imported versions are not checked for overlaps | documentation, maybe an optional check | [finding 6](findings/06-imported-versions-can-overlap.md) | [sql/examples/limits.sql](../sql/examples/limits.sql), step 2 |
 | The `WITHOUT OVERLAPS` error prints the period end before its start | bug report (JIRA) | [finding 7](findings/07-smaller-things.md) | [sql/examples/fleet.sql](../sql/examples/fleet.sql) |

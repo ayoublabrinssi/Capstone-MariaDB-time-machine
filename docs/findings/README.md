@@ -20,7 +20,7 @@ Every finding has a file in this repository that reproduces it. You can check ea
 | 6 | [Imported versions can overlap](06-imported-versions-can-overlap.md) | The server checks that an imported version ends after it starts, but not that it does not overlap another one. | <img src="../../design/icons/book-open.svg" width="24" height="24" alt="" align="absmiddle"> documentation |
 | 7 | [Smaller things worth knowing](07-smaller-things.md) | The 1970 floor, a confusing error message, backups that drop the history, and two more. | <img src="../../design/icons/book-open.svg" width="24" height="24" alt="" align="absmiddle"> documentation |
 
-"May be a bug" means the server does something that loses or hides data without an error. It may be intended, but then the documentation should say so. None of these is filed with MariaDB yet; [contributions.md](../contributions.md) tracks what goes where.
+"May be a bug" means the server does something that loses or hides data without an error. It may be intended, but then the documentation should say so. Filed on 26 November 2026: finding 1 is [MDEV-42485](https://jira.mariadb.org/browse/MDEV-42485), finding 2 is [MDEV-42487](https://jira.mariadb.org/browse/MDEV-42487), and the import tutorial and a note for finding 4 are in a [pull request to the MariaDB docs](https://github.com/mariadb-corporation/mariadb-docs/pull/1709). [contributions.md](../contributions.md) tracks what goes where.
 
 ## How each page is laid out
 

@@ -6,7 +6,7 @@ A runnable version on six rows is in [sql/examples/import_history.sql](../sql/ex
 
 ## The five steps
 
-**1. Name the system columns.** A table made with only `WITH SYSTEM VERSIONING` has `row_start` and `row_end`, but hidden and not writable. Declare them:
+**1. Name the system columns.** A table made with only `WITH SYSTEM VERSIONING` has `row_start` and `row_end` too, but hidden. The import works on those as well. Declaring them keeps the names and the type in plain sight:
 
 ```sql
 CREATE TABLE price (
@@ -66,7 +66,7 @@ After that the table is an ordinary versioned table. A change made today is stam
 | Overlaps are not checked on import | both rows are stored, `AS OF` returns two | run the check in step 5; `WITHOUT OVERLAPS` exists only for application time |
 | System time cannot be corrected later | a wrong date stays wrong | keep a second, application-time table for data you may fix ([wikipedia_correction.sql](../sql/examples/wikipedia_correction.sql)) |
 | The key is `(your key, row_end)` | `AS OF` an old date reads every later version of that key | use the first-row query below for single-key lookups |
-| `ALTER TABLE` is refused after versioning is on (error 4119) | includes adding an index | settle the schema first, or set `system_versioning_alter_history = KEEP` |
+| `ALTER TABLE` that changes columns is refused after versioning is on (error 4119) | adding a plain index still works | settle the columns first, or set `system_versioning_alter_history = KEEP` |
 | Tables versioned by transaction id (`BIGINT` columns) | no import (1906), no `SYSTEM_TIME` partitions (4110) | use `TIMESTAMP(6)` columns for imported history |
 | A plain `mariadb-dump` holds the current rows only | the history is gone after a restore, with no warning | `mariadb-dump --dump-history` ([scripts/backup_check.sh](../scripts/backup_check.sh)) |
 | Dates are read in the session time zone | the same literal can mean two moments | set `time_zone` before loading and before asking |

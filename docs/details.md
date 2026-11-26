@@ -245,7 +245,7 @@ Everything below was hit while building this, on 12.3.3. "Docs" says whether the
 | Imported versions may overlap | both are stored, `AS OF` returns two rows for one key | a test that the loaded history has no overlap and no gap | no | `sql/examples/limits.sql`; `tests/tests.sql`, checks 21, 26 and 27 |
 | System time cannot be corrected | a wrong date stays wrong | a second, bitemporal table for what may need fixing | by design | `sql/examples/wikipedia_correction.sql` |
 | History cannot start before 1970 | error 1292 | not hit by this data (2001 on); documented for others | no | `sql/examples/limits.sql` |
-| `ALTER TABLE` is refused on a versioned table | error 4119, includes adding an index | schema settled before the load; `KEEP` used where a change is measured | yes | check 13 |
+| `ALTER TABLE` that changes columns is refused on a versioned table | error 4119, adding a plain index still works | schema settled before the load; `KEEP` used where a change is measured | yes | check 13 |
 | `DELETE HISTORY` frees no space | 7,432 versions go and the table is as large as before | `DROP PARTITION` is the retention rule; a rebuild is measured | no | `sql/examples/retention.sql` prints the size after each step |
 | `OPTIMIZE TABLE` fails quietly | the refusal comes back as result rows, the statement succeeds | shown with both outputs; written up | no | `sql/examples/retention.sql` |
 | Only the oldest partitions can be dropped | error 4116 for `p10` while `p0` exists | the rule is "keep the last N years" | partly | check 20 |
@@ -258,7 +258,7 @@ Everything below was hit while building this, on 12.3.3. "Docs" says whether the
 | The size the server reports does not follow the rows | 148, 216 and 273 bytes per version for the same rows at 1x, 2x and 4x | read the pages instead: 114 bytes of row per version in every table; the rest is how full the pages are and 1 MB steps per partition | no | `scripts/growth.sh` |
 | The article text does not fit in the versioned row | 80 MB for one article, and an old date reads the text of every version it passes | text in its own table, one per quarter at load, the exact one fetched on demand | no | `scripts/text_cost.sh` |
 
-[sql/examples/limits.sql](../sql/examples/limits.sql) asks the server each of the edge questions in turn and prints its answer, output in [results/limits.txt](../results/limits.txt). The ones worth sending back to MariaDB are explained one by one in [docs/findings](findings/README.md), and [docs/contributions.md](contributions.md) lists where each one goes. None is filed yet.
+[sql/examples/limits.sql](../sql/examples/limits.sql) asks the server each of the edge questions in turn and prints its answer, output in [results/limits.txt](../results/limits.txt). The ones worth sending back to MariaDB are explained one by one in [docs/findings](findings/README.md), and [docs/contributions.md](contributions.md) lists where each one goes and what is filed.
 
 ## Where it loses
 
